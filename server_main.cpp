@@ -9,6 +9,12 @@
 int main(int argc, char **argv) 
 {
 	try {
+	
+		if(argc > 3) {
+    		std::cerr << "server: too many arguments" << std::endl;
+        	exit(EXIT_FAILURE);
+    	}
+
 		if(argc == 3) {
 			char ip_addr[INET_ADDRSTRLEN];
 	
@@ -46,6 +52,11 @@ int main(int argc, char **argv)
 			
 			case MEMORY_ALLOCATION_EXCEPTION:
 				std::cerr << "memory allocation error" << std::endl;
+				break;
+
+			default:
+				std::cerr << "some exception occurred" << std::endl;
+				break;
 		};
 	}
 	return 0;
