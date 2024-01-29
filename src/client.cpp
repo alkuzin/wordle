@@ -24,7 +24,7 @@ Client::Client(const char *ip_addr, u16 port)
 
 	// validate port
 	if(port <= 1024)
-		throw INVALID_IP_ADDRESS_EXCEPTION;
+		throw FORBIDDEN_PORT_EXCEPTION;
 
 	std::memset(&server_addr, 0, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
