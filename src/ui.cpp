@@ -117,14 +117,14 @@ void UI::save_state(const char *current_word, const bool *current_letters)
 	word_copy = strdup(current_word);
 
 	if(!word_copy)
-		error("memory allocation error");
+		throw MEMORY_ALLOCATION_EXCEPTION;
 
 	_add_word(word_copy);
 
 	letters_copy = static_cast<bool *>(std::malloc(sizeof(bool *) * WORD_LENGTH));
 
 	if(!letters_copy)
-		error("memory allocation error");
+		throw MEMORY_ALLOCATION_EXCEPTION;
 
 	for(int i = 0; i < WORD_LENGTH; i++)
 		letters_copy[i] = current_letters[i];
