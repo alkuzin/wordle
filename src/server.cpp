@@ -21,11 +21,11 @@ Server::Server(const char *ip_addr, u16 port)
 	struct sockaddr_in addr;
 
 	if((inet_pton(AF_INET, ip_addr, &(addr.sin_addr)) == 0))
-		error("this ip address is invalid");
+		throw INVALID_IP_ADDRESS_EXCEPTION;	
 
 	// validate port
 	if(port <= 1024)
-		error("this port is not allowed");
+		throw FORBIDDEN_PORT_EXCEPTION;	
 
 	memset(&server_addr, 0, sizeof(server_addr));
 	memset(&client_addr, 0, sizeof(client_addr));
@@ -38,14 +38,13 @@ Server::~Server(void)
 {
 	close(sockfd);
 	shutdown(sockfd, SHUT_RDWR);
-
 	log("server", "shutdown");
 }
 
 void Server::init(void)
 {
 	if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
-		error("socket creation failed");
+		throw SOCKET_CREATION_EXCEPTION;	
 
 	log("server", "socket creation successfull");	
 
@@ -66,7 +65,7 @@ void Server::init(void)
 void Server::_bind(void) 
 {
 	if((bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr))) < 0)
-		error("bind error");		
+		throw BIND_EXCEPTION;	
 
 	log("server", "bind successfull");
 }
@@ -142,6 +141,5 @@ void Server::_handle_client(void)
 		MSG_CONFIRM, (struct sockaddr *)&client_addr, sizeof(client_addr));
 
 		logf("server", "sent %d bytes to client\n", sent_bytes);
-
 	}
 }
