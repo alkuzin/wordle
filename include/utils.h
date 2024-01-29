@@ -28,9 +28,6 @@ enum exception {
 	MEMORY_ALLOCATION_EXCEPTION
 };
 
-// print errors
-void error(const char *error_msg);
-
 // record logs
 void log(const char *src, const char *log_msg);
 
