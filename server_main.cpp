@@ -10,16 +10,24 @@ int main(int argc, char **argv)
 {
 	try {
 	
-		if(argc > 3) {
+		if(argc > 4) {
     		std::cerr << "server: too many arguments" << std::endl;
         	exit(EXIT_FAILURE);
     	}
 
-		if(argc == 3) {
+		if(argc == 4) {
 			char ip_addr[INET_ADDRSTRLEN];
-	
+			char wordlist_path[WORDLIST_PATH_LENGTH];
+			u16  port;
+
+			std::memset(ip_addr, 0, sizeof(ip_addr));
+			std::memset(wordlist_path, 0, sizeof(wordlist_path));
+
 			std::strncpy(ip_addr, argv[1], INET_ADDRSTRLEN);
-			Server server(ip_addr, atoi(argv[2]));
+			std::strncpy(wordlist_path, argv[3], WORDLIST_PATH_LENGTH);
+			port = atoi(argv[2]);
+
+			Server server(ip_addr, port, wordlist_path);
 			server.init();
 		}
 		else {
