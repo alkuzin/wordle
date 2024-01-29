@@ -14,9 +14,9 @@
 #include <ctime>
 #include "utils.h"
 
-#define WORD_LENGTH            6
-#define ATTEMPTS_LIMIT         6
-#define WORDLIST_LENGTH        15 
+#define WORD_LENGTH            5 
+#define ATTEMPTS_LIMIT         5
+#define WORDLIST_LENGTH        50 
 #define WORDLIST_PATH_LENGTH   128
 #define DEFAULT_WORDLIST_PATH  "wordlist.txt"
 
