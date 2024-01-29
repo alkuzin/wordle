@@ -6,6 +6,16 @@
 
 #include "../include/utils.h"
 
+static void get_date(char *date);
+
+static void get_date(char *date)
+{
+    time_t current_time;
+
+	current_time = time(NULL);
+    strftime(date, DATE_SIZE, "%c", localtime(&current_time));
+}
+
 void error(const char *error_msg)
 {
 	fprintf(stderr, "error: %s\n", error_msg);
@@ -14,18 +24,28 @@ void error(const char *error_msg)
 
 void log(const char *src, const char *log_msg)
 {
-    time_t current_time;
-    char current_date[32];
+	char date[DATE_SIZE];
 
-	current_time = time(NULL);
-    strftime(current_date, 32, "%c", localtime(&current_time));
+	get_date(date);
+	printf("[%s] %s: %s\n", date, src, log_msg);
+}
 
-	printf("[%s] %s: %s\n", current_date, src, log_msg);
+void logf(const char *src, const char *log_msg_fmt, ...)
+{
+	va_list args;
+	char    date[DATE_SIZE];
+
+	get_date(date);
+	printf("[%s] %s: ", date, src);
+
+	va_start(args, log_msg_fmt);
+	vprintf(log_msg_fmt, args);
+	va_end(args);
 }
 
 void getinput(char *buffer, u32 size) 
 {
-	int i;
+	u32 i;
 
     i = 0;
 	fgets(buffer, size, stdin);
