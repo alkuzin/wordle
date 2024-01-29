@@ -4,31 +4,49 @@
  *
  */
 
-#include "include/game.h"
 #include "include/server.h"
 
 int main(int argc, char **argv) 
 {
+	try {
+		if(argc == 3) {
+			char ip_addr[INET_ADDRSTRLEN];
 	
-	if(argc > 1) {
-		std::cout << argv[1] << std::endl;
+			std::strncpy(ip_addr, argv[1], INET_ADDRSTRLEN);
+			Server server(ip_addr, atoi(argv[2]));
+			server.init();
+		}
+		else {
+			Server server;
+			server.init();
+		}
 	}
+	catch(exception e) 
+	{
+		std::cerr << "exception: ";
+		switch(e) {
+			case INVALID_IP_ADDRESS_EXCEPTION:
+				std::cerr << "this ip address is invalid" << std::endl;
+				break;
 
-	//Server server(argv[1], atoi(argv[2]));
-	Server server;
+			case FORBIDDEN_PORT_EXCEPTION:
+				std::cerr << "this port is not allowed" << std::endl;
+				break;
 
-	server.init();
-	
-	/*
-	bool arr[6] = {true, false, true, false, true, false};
-
-	u8 buffer[7];
-
-	convert_to_bytes(arr, buffer, 6);
-
-	for(int i = 0; i < 6; i++)
-		printf(" %02x", buffer[i]);
-	putchar('\n');
-*/
+			case SOCKET_CREATION_EXCEPTION:
+				std::cerr << "socket creation failed" << std::endl;
+				break;
+			case BIND_EXCEPTION:
+				std::cerr << "bind failed" << std::endl;
+				break;
+			
+			case WORDLIST_FILE_OPEN_EXCEPTION:
+				std::cerr << "failed to open wordlist file" << std::endl;
+				break;
+			
+			case MEMORY_ALLOCATION_EXCEPTION:
+				std::cerr << "memory allocation error" << std::endl;
+		};
+	}
 	return 0;
 }
