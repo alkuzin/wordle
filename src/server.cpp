@@ -8,14 +8,14 @@
 
 Server::Server(void)
 {
-	memset(&server_addr, 0, sizeof(server_addr));
-	memset(&client_addr, 0, sizeof(client_addr));
+	std::memset(&server_addr, 0, sizeof(server_addr));
+	std::memset(&client_addr, 0, sizeof(client_addr));
 	server_addr.sin_family      = AF_INET;
 	server_addr.sin_port        = DEFAULT_PORT;
 	server_addr.sin_addr.s_addr = inet_addr(DEFAULT_IP_ADDRESS);
 }
 
-Server::Server(const char *ip_addr, u16 port)
+Server::Server(const char *ip_addr, u16 port, const char *wordlist_path)
 {
 	// validate IP server_addr
 	struct sockaddr_in addr;
@@ -26,12 +26,15 @@ Server::Server(const char *ip_addr, u16 port)
 	// validate port
 	if(port <= 1024)
 		throw FORBIDDEN_PORT_EXCEPTION;	
-
-	memset(&server_addr, 0, sizeof(server_addr));
-	memset(&client_addr, 0, sizeof(client_addr));
+	
+	std::memset(&server_addr, 0, sizeof(server_addr));
+	std::memset(&client_addr, 0, sizeof(client_addr));
+	
 	server_addr.sin_family      = AF_INET;
 	server_addr.sin_port        = port;
 	server_addr.sin_addr.s_addr = inet_addr(ip_addr);
+	
+	game.set_wordlist_path(wordlist_path);
 }
 
 Server::~Server(void) 
