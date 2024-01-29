@@ -24,7 +24,6 @@ void Game::process_input(const char *input, bool *letters)
 {
 	int i;
 
-
 	i = 0;
 	while(input[i]) {
 		letters[i] = (word[i] == input[i]);	
@@ -49,8 +48,8 @@ void Game::set_word(void)
 	std::ifstream wordlist_file(wordlist_path);
 
 	if(!wordlist_file.is_open())
-		error("error to open wordlist file");
-	
+		throw WORDLIST_FILE_OPEN_EXCEPTION;
+
 	i = 0;
 	srand(time(NULL));
 	random_word_index = rand() % (WORDLIST_LENGTH - 1) + 1;
