@@ -9,7 +9,6 @@
 
 #include <iostream>
 #include <cstdarg>
-//#include <cstdio>
 #include <cstdlib>
 #include <ctime>
 
@@ -19,6 +18,15 @@ typedef unsigned short  u16;
 typedef unsigned char   u8;
 
 #define DATE_SIZE 32
+
+enum exception {
+	INVALID_IP_ADDRESS_EXCEPTION,
+	FORBIDDEN_PORT_EXCEPTION,
+	SOCKET_CREATION_EXCEPTION,
+	BIND_EXCEPTION,
+	WORDLIST_FILE_OPEN_EXCEPTION,
+	MEMORY_ALLOCATION_EXCEPTION
+};
 
 // print errors
 void error(const char *error_msg);
