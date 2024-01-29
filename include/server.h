@@ -18,8 +18,8 @@
 #include "utils.h"
 #include "game.h"
 
-#define DEFAULT_IP_ADDRESS  "127.0.0.1"
-#define DEFAULT_PORT        8080
+#define DEFAULT_IP_ADDRESS  "127.0.0.123"
+#define DEFAULT_PORT       	12345 
 #define WORD_LENGTH         5
 #define EXIT_CODE 			"-----"
 
