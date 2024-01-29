@@ -8,22 +8,10 @@
 
 Client::Client(void)
 {
-	std::memset(&client_addr, 0, sizeof(client_addr));
-	client_addr.sin_family = AF_INET;
-	client_addr.sin_port = DEFAULT_PORT;
-	client_addr.sin_addr.s_addr = inet_addr(DEFAULT_IP_ADDRESS);
-	addr_len = sizeof(client_addr);
-	client_fd = -1;
-}
-
-Client::Client(int client_fd)
-{
-	this->client_fd = client_fd;
-	std::memset(&client_addr, 0, sizeof(client_addr));
-	client_addr.sin_family = AF_INET;
-	client_addr.sin_port = DEFAULT_PORT;
-	client_addr.sin_addr.s_addr = inet_addr(DEFAULT_IP_ADDRESS);
-	addr_len = sizeof(client_addr);
+	std::memset(&server_addr, 0, sizeof(server_addr));
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_port = DEFAULT_PORT;
+	server_addr.sin_addr.s_addr = inet_addr(DEFAULT_IP_ADDRESS);
 }
 
 Client::Client(const char *ip_addr, u16 port)
@@ -32,73 +20,40 @@ Client::Client(const char *ip_addr, u16 port)
 	struct sockaddr_in addr;
 	
 	if((inet_pton(AF_INET, ip_addr, &(addr.sin_addr)) == 0))
-		error("this ip client_addr is invalid");
+		error("this ip server_addr is invalid");
 
 	// validate port
 	if(port <= 1024)
 		error("this port is not allowed");
 
-	std::memset(&client_addr, 0, sizeof(client_addr));
-	client_addr.sin_family = AF_INET;
-	client_addr.sin_port = port;
-	client_addr.sin_addr.s_addr = inet_addr(ip_addr);
-	addr_len = sizeof(client_addr);
-	
-	client_fd = -1;
+	std::memset(&server_addr, 0, sizeof(server_addr));
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_port = port;
+	server_addr.sin_addr.s_addr = inet_addr(ip_addr);
 }
 
-Client::~Client(void) 
-{
-	close(client_fd);
-	log("client", "exit");
+Client::~Client(void) {
+	close(sockfd);
 }
 
 void Client::init(void)
 {
-	if(client_fd == -1) {
-		if((client_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-			error("socket failed");
-	}
+	if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+		error("socket creation failed");
 
-	log("client", "initialization successfull");	
-	_connect();
+	_handle_server();
 }
 
-void Client::_connect(void)
-{
-	
-	if((connect(client_fd, (sockaddr *)&client_addr, addr_len)) < 0)
-		error("connect error");
-
-	log("client", "connection successfull");
-	
-	// Display server ip address and port
-	char buffer[64];
-	
-	// Convert IP address to string
-	char ip_addr_buffer[INET_ADDRSTRLEN];
-	struct in_addr addr;
-	
-	addr.s_addr = client_addr.sin_addr.s_addr;
-	inet_ntop(AF_INET, &(addr.s_addr), ip_addr_buffer, INET_ADDRSTRLEN);
-
-	snprintf(buffer, sizeof(buffer), "connected to server [ip: %s port: %hu]",
-			ip_addr_buffer, client_addr.sin_port);
-	log("client", buffer);
-
-	handle_server(client_fd);
-}
-
-void Client::handle_server(int server_fd)
+void Client::_handle_server(void)
 {
 	char buffer[WORD_LENGTH + 1];
 	bool letters[WORD_LENGTH];
 	u8 bytes[WORD_LENGTH + 1];
-	char hidden_word[WORD_LENGTH + 1];
+	u32 server_addr_len;
 
 	while(ui.get_attempts()) {
-		std::memset(buffer, 0, sizeof(buffer));
 		std::memset(letters, 0, sizeof(letters));
+		std::memset(buffer, 0, sizeof(buffer));
 		std::memset(bytes, 0, sizeof(bytes));
 
 		system("clear");
@@ -106,40 +61,51 @@ void Client::handle_server(int server_fd)
 
 		printf("<client>: ");
 		getinput(buffer, sizeof(buffer));
+		buffer[WORD_LENGTH] = '\0';
 
 		if(buffer[0] == '\0')
 			continue;
+	
+		logf("client", "sending word '%s'\n", buffer);
+		// sending word
+		int sent_bytes = sendto(sockfd, buffer, sizeof(buffer), MSG_CONFIRM,
+			  (struct sockaddr *)&server_addr, sizeof(server_addr));
 		
-		//log("client", "sending word");
-		send(server_fd, buffer, sizeof(buffer), 0);
+		if(std::strncmp(EXIT_CODE, buffer, 5) == 0)
+			break;
 		
-		//log("client", "receiving bytes array");
-		recv(server_fd, bytes, sizeof(bytes), 0);	
+		logf("client", "sent %d bytes \n", sent_bytes);
 
-		//log("client", "converting bytes array to bool array");
+		// receiving bytes array
+		log("client", "receiving bytes array");
+		int recv_bytes = recvfrom(sockfd, bytes, sizeof(bytes), MSG_WAITALL,
+		    (struct sockaddr *)&server_addr, &server_addr_len);
+		bytes[WORD_LENGTH] = '\0';
+
+		logf("client", "received %d bytes \n", recv_bytes);
+
+		log("client", "received bytes array");
+		for(int i = 0; i < WORD_LENGTH; i++)
+             printf(" %02x", bytes[i]);
+        putchar('\n');
+
+		// converting bytes array to bool array
 		convert_to_bool(bytes, letters, sizeof(letters));
 		
-		//log("client", "saving current state");
+		// saving current state
 		ui.save_state(buffer, letters);
 
 		if(ui.is_guessed())
 			break;
 
-		if(std::strncmp("exit", buffer, 4) == 0)
-			break;
-
 		ui.decrement_attempts();
 	}
+	
+	std::strncpy(buffer, EXIT_CODE, sizeof(buffer));
+	sendto(sockfd, buffer, sizeof(buffer), MSG_CONFIRM,
+		  (struct sockaddr *)&server_addr, sizeof(server_addr));
 
 	system("clear");
-	ui.decrement_attempts();
 	ui.display();
-
-	std::strncpy(buffer, "finish", sizeof(buffer));
-	send(server_fd, buffer, sizeof(buffer), 0);
-	
-	// receive hidden word after the game was finished
-	std::memset(hidden_word, 0, WORD_LENGTH);
-	recv(server_fd, hidden_word, sizeof(hidden_word), 0);
-	ui.display_result(hidden_word);
+	ui.display_result();
 }

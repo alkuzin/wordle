@@ -9,12 +9,10 @@
 Server::Server(void)
 {
 	memset(&server_addr, 0, sizeof(server_addr));
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_port = DEFAULT_PORT;
+	memset(&client_addr, 0, sizeof(client_addr));
+	server_addr.sin_family      = AF_INET;
+	server_addr.sin_port        = DEFAULT_PORT;
 	server_addr.sin_addr.s_addr = inet_addr(DEFAULT_IP_ADDRESS);
-	addr_len = sizeof(server_addr);
-
-	log("server", "default constructor");	
 }
 
 Server::Server(const char *ip_addr, u16 port)
@@ -23,157 +21,127 @@ Server::Server(const char *ip_addr, u16 port)
 	struct sockaddr_in addr;
 
 	if((inet_pton(AF_INET, ip_addr, &(addr.sin_addr)) == 0))
-		error("this ip server_addr is invalid");
+		error("this ip address is invalid");
 
 	// validate port
 	if(port <= 1024)
 		error("this port is not allowed");
 
 	memset(&server_addr, 0, sizeof(server_addr));
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_port = port;
+	memset(&client_addr, 0, sizeof(client_addr));
+	server_addr.sin_family      = AF_INET;
+	server_addr.sin_port        = port;
 	server_addr.sin_addr.s_addr = inet_addr(ip_addr);
-	addr_len = sizeof(server_addr);
-	
-	log("server", "custom constructor");	
 }
 
 Server::~Server(void) 
 {
-	close(server_fd);
-	shutdown(server_fd, SHUT_RDWR);
+	close(sockfd);
+	shutdown(sockfd, SHUT_RDWR);
 
 	log("server", "shutdown");
 }
 
 void Server::init(void)
 {
-	if((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-		error("socket failed");
+	if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+		error("socket creation failed");
 
-	log("server", "initialization successfull");	
+	log("server", "socket creation successfull");	
 
 	// Display server ip address and port
-	char buffer[64];
-	
-	// Convert IP address to string
 	char ip_addr_buffer[INET_ADDRSTRLEN];
-	struct in_addr addr;
-	
-	addr.s_addr = server_addr.sin_addr.s_addr;
-	inet_ntop(AF_INET, &(addr.s_addr), ip_addr_buffer, INET_ADDRSTRLEN);
 
-	snprintf(buffer, sizeof(buffer), "ip: %s port: %hu", ip_addr_buffer, server_addr.sin_port);
-	log("server", buffer);
+	// Convert IP address to string
+	inet_ntop(AF_INET, &(server_addr.sin_addr.s_addr), ip_addr_buffer, INET_ADDRSTRLEN);
+	ip_addr_buffer[INET_ADDRSTRLEN] = '\0';
+	logf("server", "ip: %s port: %hu\n", ip_addr_buffer, server_addr.sin_port);
 
 	_bind();
-	_listen();
+
+	while(true)
+		_handle_client();
 }
 
 void Server::_bind(void) 
 {
-	if((bind(server_fd, (struct sockaddr *)&server_addr, addr_len)) < 0)
+	if((bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr))) < 0)
 		error("bind error");		
 
 	log("server", "bind successfull");
 }
 
-void Server::_listen(void) 
+void Server::_handle_client(void)
 {
-	int new_fd;
-	char buffer[INPUT_SIZE + 1];
-	char client_info[128];
-	char client_ip_addr_buffer[INET_ADDRSTRLEN];
-
-	struct sockaddr_in client_addr;
+	char message[WORD_LENGTH + 1];
 	u32 client_addr_len;
-
-
-	memset(buffer, 0, INPUT_SIZE);
-	log("server", "listening...");
-
-	do {
-
-		if((listen(server_fd, CLIENT_LIMIT)) < 0) {
-			error("listen error");		
-		}
-
-		if((new_fd = accept(server_fd, (struct sockaddr *)&client_addr, (socklen_t *)&client_addr_len)) < 0) {
-			error("accept error");		
-		}
-
-		memset(client_info, 0, 128);
-		memset(&client_addr, 0, sizeof(client_addr));
-		
-		inet_ntop(AF_INET, &(client_addr.sin_addr.s_addr), client_ip_addr_buffer, INET_ADDRSTRLEN);
-		snprintf(client_info, 128, "connected client <client-%d> [ip: %s port: %hu]",
-				 new_fd, client_ip_addr_buffer, client_addr.sin_port);
-		log("server", client_info);
-
-		handle_client(new_fd);	
-	} 
-	while(true);
-}
-
-void Server::handle_client(int client_fd)
-{
-	char client_buffer[WORD_LENGTH + 1];
+	
 	bool letters[WORD_LENGTH];
-	char log_buffer[128];
+	char ip_addr_buffer[INET_ADDRSTRLEN];
 	char hidden_word[WORD_LENGTH + 1];
 	u8 bytes[WORD_LENGTH + 1];
-	Client client(client_fd); 
 	
+	// show client information
+	inet_ntop(AF_INET, &(client_addr.sin_addr.s_addr), ip_addr_buffer, INET_ADDRSTRLEN);
+	
+	logf("server", "connected client <client> [ip: %s port: %hu]\n", ip_addr_buffer,
+		 client_addr.sin_port);
+		
 	game.set_word();
 	std::memset(hidden_word, 0, sizeof(hidden_word));
 	std::strncpy(hidden_word, game.get_hidden_word(), WORD_LENGTH);
 	hidden_word[WORD_LENGTH] = '\0';
+	
+	logf("server", "hidden word: '%s'\n", hidden_word);
 
-	std::cout << "HIDDEN_WORD: " << hidden_word << std::endl; 
 	while(true) {
-		std::memset(log_buffer, 0, sizeof(log_buffer));
-		std::memset(client_buffer, 0, sizeof(client_buffer));
+		std::memset(message, 0, sizeof(message));
 		std::memset(letters, 0, sizeof(letters));
-		std::memset(bytes, 0, sizeof(bytes));
+		std::memset(bytes,   0, sizeof(bytes));
+	
+		log("server", "waiting client response");
+		recvfrom(sockfd, message, sizeof(message),
+				 MSG_WAITALL, (struct sockaddr *)&client_addr, &client_addr_len);
 
-		log("server", "receiving word from client");
-		recv(client_fd, client_buffer, sizeof(client_buffer), 0);
-		client_buffer[WORD_LENGTH] = '\0';
+		message[WORD_LENGTH] = '\0';
 		
-		snprintf(log_buffer, sizeof(log_buffer), "<client-%d>: %s", client_fd, client_buffer);
-		log("server", log_buffer);
-		
-		if(std::strncmp("exit", client_buffer, 4) == 0) {
-			log("server", "client quit");
-			break;
-		}
-		
-		if(std::strncmp("finish", client_buffer, WORD_LENGTH) == 0) {
-			// send client hidden word
+		if(std::strncmp(EXIT_CODE, message, 5) == 0) {
+			log("server", "client finished game");
+			std::cout << std::endl;
+			log("server", "setting new hidden word");
+			game.set_word();
 			std::memset(hidden_word, 0, sizeof(hidden_word));
 			std::strncpy(hidden_word, game.get_hidden_word(), WORD_LENGTH);
 			hidden_word[WORD_LENGTH] = '\0';
-			send(client_fd, hidden_word, sizeof(hidden_word), 0);
 			
-			log("server", "client finished playing");
-			break;
+			logf("server", "hidden word: '%s'\n", hidden_word);
+			continue;
 		}
 		
-		//if(client_buffer[0] == '\0')
-		//	continue;
+		logf("server", "<client>: %s\n", message);
 
 		log("server", "processing word");
-		game.process_input(client_buffer, letters);
+		game.process_input(message, letters);
 		
-		log("server", "converting bool array to bytes");
+		logf("server", "%s", "converting bool array to bytes: ");
 		convert_to_bytes(letters, bytes, sizeof(bytes));
-
 		
-		for(int i = 0; i < WORD_LENGTH; i++)
-			printf(" %02x", bytes[i]);
+		// display bool array of guesssed letters
+		putchar('{');
+		for(int i = 0; i < WORD_LENGTH; i++) {
+			printf(" %d", bytes[i]);
+			if(i < WORD_LENGTH - 1)
+				putchar(',');
+		}
+		putchar(' ');
+		putchar('}');
 		putchar('\n');
 
 		log("server", "sending bytes array to client");
-		send(client_fd, bytes, sizeof(bytes), 0);
+		int sent_bytes = sendto(sockfd, bytes, sizeof(bytes),
+		MSG_CONFIRM, (struct sockaddr *)&client_addr, sizeof(client_addr));
+
+		logf("server", "sent %d bytes to client\n", sent_bytes);
+
 	}
 }

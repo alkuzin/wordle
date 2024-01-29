@@ -7,34 +7,36 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include <iostream>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <iostream>
 #include <cstring>
 #include "utils.h"
 #include "ui.h"
 
+#define DEFAULT_IP_ADDRESS  "127.0.0.1"
+#define DEFAULT_PORT        8080
+
+#define EXIT_CODE "-----"
+
 class Client 
 {
-	int client_fd;	
-	struct sockaddr_in client_addr;
-	u32 addr_len;
+	int sockfd;	
+	struct sockaddr_in server_addr;
 	UI ui;
 
 	public:
 		Client();
-		Client(int client_fd);
 		Client(const char *ip_addr, u16 port);
 		~Client();
 		
 		void init(void);
 	
 	private:
-		void _connect(void);
-		void handle_server(int server_fd);
+		void _handle_server(void);
 };
 
 #endif // CLIENT_H
