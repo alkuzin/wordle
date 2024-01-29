@@ -12,6 +12,7 @@ Server::Server(void)
 	std::memset(&client_addr, 0, sizeof(client_addr));
 	server_addr.sin_family      = AF_INET;
 	server_addr.sin_port        = DEFAULT_PORT;
+	//server_addr.sin_addr.s_addr = inet_addr(INADDR_ANY);
 	server_addr.sin_addr.s_addr = inet_addr(DEFAULT_IP_ADDRESS);
 }
 
@@ -75,13 +76,13 @@ void Server::_bind(void)
 
 void Server::_handle_client(void)
 {
-	char message[WORD_LENGTH + 1];
-	u32 client_addr_len;
-	
-	bool letters[WORD_LENGTH];
 	char ip_addr_buffer[INET_ADDRSTRLEN];
 	char hidden_word[WORD_LENGTH + 1];
-	u8 bytes[WORD_LENGTH + 1];
+	char message[WORD_LENGTH + 1];
+	bool letters[WORD_LENGTH];
+	u8   bytes[WORD_LENGTH + 1];
+	u32  client_addr_len;
+	bool result;
 	
 	// show client information
 	inet_ntop(AF_INET, &(client_addr.sin_addr.s_addr), ip_addr_buffer, INET_ADDRSTRLEN);
@@ -89,14 +90,14 @@ void Server::_handle_client(void)
 	logf("server", "connected client <client> [ip: %s port: %hu]\n", ip_addr_buffer,
 		 client_addr.sin_port);
 		
-	game.set_word();
+	game.update_hidden_word();
 	std::memset(hidden_word, 0, sizeof(hidden_word));
 	std::strncpy(hidden_word, game.get_hidden_word(), WORD_LENGTH);
 	hidden_word[WORD_LENGTH] = '\0';
 	
 	logf("server", "hidden word: '%s'\n", hidden_word);
 
-	while(true) {
+	while(game.get_attempts()) {
 		std::memset(message, 0, sizeof(message));
 		std::memset(letters, 0, sizeof(letters));
 		std::memset(bytes,   0, sizeof(bytes));
@@ -104,26 +105,12 @@ void Server::_handle_client(void)
 		log("server", "waiting client response");
 		recvfrom(sockfd, message, sizeof(message),
 				 MSG_WAITALL, (struct sockaddr *)&client_addr, &client_addr_len);
-
 		message[WORD_LENGTH] = '\0';
 		
-		if(std::strncmp(EXIT_CODE, message, 5) == 0) {
-			log("server", "client finished game");
-			std::cout << std::endl;
-			log("server", "setting new hidden word");
-			game.set_word();
-			std::memset(hidden_word, 0, sizeof(hidden_word));
-			std::strncpy(hidden_word, game.get_hidden_word(), WORD_LENGTH);
-			hidden_word[WORD_LENGTH] = '\0';
-			
-			logf("server", "hidden word: '%s'\n", hidden_word);
-			continue;
-		}
-		
 		logf("server", "<client>: %s\n", message);
-
 		log("server", "processing word");
 		game.process_input(message, letters);
+		result = game.is_guessed(letters);
 		
 		logf("server", "%s", "converting bool array to bytes: ");
 		convert_to_bytes(letters, bytes, sizeof(bytes));
@@ -138,11 +125,27 @@ void Server::_handle_client(void)
 		putchar(' ');
 		putchar('}');
 		putchar('\n');
-
+		
 		log("server", "sending bytes array to client");
 		int sent_bytes = sendto(sockfd, bytes, sizeof(bytes),
 		MSG_CONFIRM, (struct sockaddr *)&client_addr, sizeof(client_addr));
 
 		logf("server", "sent %d bytes to client\n", sent_bytes);
+	
+		if(result) {
+			log("server", "client finished game");
+			std::cout << std::endl;
+			log("server", "setting new hidden word");
+			
+			game.update_hidden_word();
+			std::memset(hidden_word, 0, sizeof(hidden_word));
+			std::strncpy(hidden_word, game.get_hidden_word(), WORD_LENGTH);
+			hidden_word[WORD_LENGTH] = '\0';
+			logf("server", "hidden word: '%s'\n", hidden_word);
+			continue;
+		}
+		game.decrement_attempts();
 	}
+	log("server", "reset attempts");
+	game.reset_attempts();
 }
