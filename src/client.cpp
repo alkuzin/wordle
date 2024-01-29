@@ -20,11 +20,11 @@ Client::Client(const char *ip_addr, u16 port)
 	struct sockaddr_in addr;
 	
 	if((inet_pton(AF_INET, ip_addr, &(addr.sin_addr)) == 0))
-		error("this ip server_addr is invalid");
+		throw INVALID_IP_ADDRESS_EXCEPTION;
 
 	// validate port
 	if(port <= 1024)
-		error("this port is not allowed");
+		throw INVALID_IP_ADDRESS_EXCEPTION;
 
 	std::memset(&server_addr, 0, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
@@ -39,7 +39,7 @@ Client::~Client(void) {
 void Client::init(void)
 {
 	if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
-		error("socket creation failed");
+		throw SOCKET_CREATION_EXCEPTION;
 
 	_handle_server();
 }
