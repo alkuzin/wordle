@@ -21,7 +21,7 @@
 #define DEFAULT_IP_ADDRESS  "127.0.0.1"
 #define DEFAULT_PORT        8080
 #define WORD_LENGTH         5
-#define EXIT_CODE "-----"
+#define EXIT_CODE 			"-----"
 
 class Server 
 {
@@ -32,7 +32,7 @@ class Server
 
 	public:
 		Server();
-		Server(const char *ip_addr, u16 port);
+		Server(const char *ip_addr, u16 port, const char *wordlist_path);
 		~Server();
 		void init(void);
 	
