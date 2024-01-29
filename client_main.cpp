@@ -8,16 +8,49 @@
 
 int main(int argc, char **argv) 
 {
-	if(argc > 1) {
-		std::cout << argv[0] << std::endl;
+	try {
+
+		if(argc > 3) {
+			std::cerr << "client: too many arguments" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
+		if(argc == 3) {
+			char ip_addr[INET_ADDRSTRLEN];
+	
+			std::strncpy(ip_addr, argv[1], INET_ADDRSTRLEN);
+			Client client(ip_addr, atoi(argv[2]));
+			client.init();
+		}
+		else {
+			Client client;
+			client.init();
+		}
 	}
-	
-	std::cout << "RUN CLIENT" << std::endl;		
+	catch(exception e) 
+	{
+		std::cerr << "exception: ";
+		switch(e) {
+			case INVALID_IP_ADDRESS_EXCEPTION:
+				std::cerr << "this ip address is invalid" << std::endl;
+				break;
 
-	Client client;
-	//Client client(argv[1], atoi(argv[2]));
+			case FORBIDDEN_PORT_EXCEPTION:
+				std::cerr << "this port is not allowed" << std::endl;
+				break;
 
-	client.init();
-	
+			case SOCKET_CREATION_EXCEPTION:
+				std::cerr << "socket creation failed" << std::endl;
+				break;
+			
+			case MEMORY_ALLOCATION_EXCEPTION:
+				std::cerr << "memory allocation error" << std::endl;
+				break;
+
+			default:
+				std::cerr << "some exception occurred" << std::endl;
+				break;
+		};
+	}
 	return 0;
 }
