@@ -9,14 +9,11 @@
 
 #include <iostream>
 #include <cstring>
-#include <algorithm> // for std::count
 #include <vector>
-
 #include "utils.h"
 
-#define WORD_LENGTH      6
-#define ATTEMPTS_LIMIT   6
-#define WORDLIST_LENGTH  15 
+#define WORD_LENGTH      5
+#define ATTEMPTS_LIMIT   5
 
 class UI 
 {
@@ -28,18 +25,17 @@ class UI
 		UI(void);
 		~UI();
 		
-		bool is_guessed(void);
 		void display(void);
-		void display_result(const char *hidden_word);
-
+		bool is_guessed(void);
 		u32  get_attempts(void);
 		void decrement_attempts(void);
 		void save_state(const char *current_word, const bool *current_letters);
+		void display_result(void);
 	
 	private:
-		void display_letters(void);
-		void add_word(char *word);
-		void add_letters(bool *letters);
+		void _display_letters(void);
+		void _add_word(char *word);
+		void _add_letters(bool *letters);
 };
 
 #endif // UI_H
