@@ -15,7 +15,7 @@ Game::Game(void)
 
 Game::Game(const char *wordlist_path, u32 attempts) 
 {
-	std::strncpy(this->wordlist_path, wordlist_path, WORDLIST_PATH_LENGTH);
+	set_wordlist_path(wordlist_path);
 	this->attempts = attempts;
 	set_word();
 }
@@ -38,6 +38,12 @@ void Game::process_input(const char *input, bool *letters)
 
 char *Game::get_hidden_word(void) {
 	return word;
+}
+
+void Game::set_wordlist_path(const char *wordlist_path)
+{
+	std::memset(this->wordlist_path, 0, sizeof(wordlist_path));
+	std::strncpy(this->wordlist_path, wordlist_path, WORDLIST_PATH_LENGTH);
 }
 
 void Game::set_word(void)
