@@ -9,8 +9,8 @@
 Client::Client(void)
 {
 	std::memset(&server_addr, 0, sizeof(server_addr));
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_port = DEFAULT_PORT;
+	server_addr.sin_family      = AF_INET;
+	server_addr.sin_port        = DEFAULT_PORT;
 	server_addr.sin_addr.s_addr = inet_addr(DEFAULT_IP_ADDRESS);
 }
 
@@ -27,8 +27,8 @@ Client::Client(const char *ip_addr, u16 port)
 		throw FORBIDDEN_PORT_EXCEPTION;
 
 	std::memset(&server_addr, 0, sizeof(server_addr));
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_port = port;
+	server_addr.sin_family      = AF_INET;
+	server_addr.sin_port        = port;
 	server_addr.sin_addr.s_addr = inet_addr(ip_addr);
 }
 
@@ -46,66 +46,58 @@ void Client::init(void)
 
 void Client::_handle_server(void)
 {
-	char buffer[WORD_LENGTH + 1];
+	char message[WORD_LENGTH + 1];
 	bool letters[WORD_LENGTH];
-	u8 bytes[WORD_LENGTH + 1];
-	u32 server_addr_len;
+	u8   bytes[WORD_LENGTH + 1];
+	u32  server_addr_len;
+		
+	system("clear");
+	ui.display_banner();
 
 	while(ui.get_attempts()) {
 		std::memset(letters, 0, sizeof(letters));
-		std::memset(buffer, 0, sizeof(buffer));
-		std::memset(bytes, 0, sizeof(bytes));
-
-		system("clear");
-		ui.display();
+		std::memset(message, 0, sizeof(message));
+		std::memset(bytes,   0, sizeof(bytes));
 
 		printf("<client>: ");
-		getinput(buffer, sizeof(buffer));
-		buffer[WORD_LENGTH] = '\0';
+		getinput(message, sizeof(message));
+		message[WORD_LENGTH] = '\0';
 
-		if(buffer[0] == '\0')
+		if(message[0] == '\0')
 			continue;
 	
-		logf("client", "sending word '%s'\n", buffer);
+		//logf("client", "sending word '%s'\n", message);
 		// sending word
-		int sent_bytes = sendto(sockfd, buffer, sizeof(buffer), MSG_CONFIRM,
+		sendto(sockfd, message, sizeof(message), MSG_CONFIRM,
 			  (struct sockaddr *)&server_addr, sizeof(server_addr));
 		
-		if(std::strncmp(EXIT_CODE, buffer, 5) == 0)
-			break;
-		
-		logf("client", "sent %d bytes \n", sent_bytes);
+		//logf("client", "sent %d bytes \n", sent_bytes);
 
 		// receiving bytes array
-		log("client", "receiving bytes array");
-		int recv_bytes = recvfrom(sockfd, bytes, sizeof(bytes), MSG_WAITALL,
-		    (struct sockaddr *)&server_addr, &server_addr_len);
+		//log("client", "receiving bytes array");
+		recvfrom(sockfd, bytes, sizeof(bytes), MSG_WAITALL,
+		        (struct sockaddr *)&server_addr, &server_addr_len);
 		bytes[WORD_LENGTH] = '\0';
-
-		logf("client", "received %d bytes \n", recv_bytes);
-
-		log("client", "received bytes array");
+			
+		//logf("client", "received %d bytes \n", recv_bytes);
+		//log("client", "received bytes array");
+		/*
 		for(int i = 0; i < WORD_LENGTH; i++)
              printf(" %02x", bytes[i]);
         putchar('\n');
+		*/
 
 		// converting bytes array to bool array
 		convert_to_bool(bytes, letters, sizeof(letters));
 		
-		// saving current state
-		ui.save_state(buffer, letters);
-
-		if(ui.is_guessed())
+		ui.display_word(message, letters);
+		
+		if(ui.is_guessed(letters))
 			break;
 
 		ui.decrement_attempts();
 	}
-	
-	std::strncpy(buffer, EXIT_CODE, sizeof(buffer));
-	sendto(sockfd, buffer, sizeof(buffer), MSG_CONFIRM,
-		  (struct sockaddr *)&server_addr, sizeof(server_addr));
-
-	system("clear");
-	ui.display();
-	ui.display_result();
+	//system("clear");
+	//ui.display();
+	ui.display_result(letters);
 }
