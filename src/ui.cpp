@@ -12,27 +12,31 @@ UI::UI(void) {
 
 void UI::display(void) 
 {
-	puts("\n   ______                    \n"
-	 	 "  / ____/___ _____ ___  ___    \n"
-	 	 " / / __/ __ `/ __ `__ \\/ _ \\ \n"
-	 	 "/ /_/ / /_/ / / / / / /  __/   \n"
-		 "\\____/\\__,_/_/ /_/ /_/\\___/ \n\n"
-		 "-----------------------------\n"
-		 "|      Guess the word!      |\n"	
-		 "-----------------------------");
-	std::cout << "| Attempts left: " << attempts << "          |" << std::endl;
+	std::cout << 
+			 "\n _       __               ____    \n"
+			 "| |     / /___  _________/ / /__    \n"
+			 "| | /| / / __ \\/ ___/ __  / / _ \\ \n"
+			 "| |/ |/ / /_/ / /  / /_/ / /  __/   \n"
+			 "|__/|__/\\____/_/   \\__,_/_/\\___/ \n\n"
+		 	 "-----------------------------       \n"
+		 	 "|      Guess the word!      |       \n"	
+		 	 "-----------------------------" << std::endl;
+	std::cout << "|     Attempts left: " << attempts << "      |" << std::endl;
 	std::cout << "-----------------------------" << "\n" << std::endl;
-	display_letters();
+	_display_letters();
 }
 
-void UI::display_result(const char *hidden_word)
+void UI::display_result(void)
 {
 	if(is_guessed()) {
-		std::cout << "-----------YOU WIN-----------\n\n\n" << std::endl;
+		std::cout << "-----------------------------" << std::endl;
+		std::cout << "|      Word was guessed     |" << std::endl;
+		std::cout << "-----------------------------\n\n\n" << std::endl;
 	}
 	else {
-		std::cout << "----------YOU LOST-----------" << std::endl;
-		std::cout << "Hidden word: " << hidden_word << "\n\n\n" << std::endl;
+		std::cout << "-----------------------------" << std::endl;
+		std::cout << "|         YOU LOST          |" << std::endl;
+		std::cout << "-----------------------------\n\n\n" << std::endl;
 	}
 }
 
@@ -41,21 +45,19 @@ bool UI::is_guessed(void)
 	bool *temp_letters;
 	u32 prod;
 
-
-	if(attempts) {
+	if(attempts && previous_letters.size()) {
 		prod = 1;
 		temp_letters = previous_letters.back();
 		for(int i = 0; i < WORD_LENGTH; i++)
 			prod *= (u32)temp_letters[i];
 
-		//attempts--;
 		return (bool)prod;
 	}
 
 	return false;
 }
 
-void UI::display_letters(void)
+void UI::_display_letters(void)
 {
 	u64 i;
 	u32 j, correct_letters;
@@ -112,13 +114,12 @@ void UI::save_state(const char *current_word, const bool *current_letters)
 	char *word_copy;
 	bool *letters_copy;
 	
-
 	word_copy = strdup(current_word);
 
 	if(!word_copy)
 		error("memory allocation error");
 
-	add_word(word_copy);
+	_add_word(word_copy);
 
 	letters_copy = static_cast<bool *>(std::malloc(sizeof(bool *) * WORD_LENGTH));
 
@@ -128,9 +129,8 @@ void UI::save_state(const char *current_word, const bool *current_letters)
 	for(int i = 0; i < WORD_LENGTH; i++)
 		letters_copy[i] = current_letters[i];
 
-	add_letters(letters_copy);
+	_add_letters(letters_copy);
 }
-
 
 u32 UI::get_attempts(void) {
 	return attempts;
@@ -140,11 +140,11 @@ void UI::decrement_attempts(void) {
 	attempts--;
 }
 
-void UI::add_word(char *word) {
+void UI::_add_word(char *word) {
 	previous_words.push_back(word);
 }
 
-void UI::add_letters(bool *letters) {
+void UI::_add_letters(bool *letters) {
 	previous_letters.push_back(letters);
 }
 
