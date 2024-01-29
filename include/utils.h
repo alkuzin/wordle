@@ -8,6 +8,8 @@
 #define UTILS_H
 
 #include <iostream>
+#include <cstdarg>
+//#include <cstdio>
 #include <cstdlib>
 #include <ctime>
 
@@ -16,14 +18,16 @@ typedef unsigned int    u32;
 typedef unsigned short  u16;
 typedef unsigned char   u8;
 
-#define DEFAULT_IP_ADDRESS  "127.0.0.1"
-#define DEFAULT_PORT        9999
+#define DATE_SIZE 32
 
 // print errors
 void error(const char *error_msg);
 
 // record logs
 void log(const char *src, const char *log_msg);
+
+// record formatted logs
+void logf(const char *src, const char *log_msg_fmt, ...);
 
 // get correct user input
 void getinput(char *buffer, u32 size);
