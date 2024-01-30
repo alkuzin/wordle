@@ -82,5 +82,6 @@ u32 Game::get_attempts(void) {
 }
 
 void Game::decrement_attempts(void) {
-	attempts--;
+	if(attempts)
+		attempts--;
 }
