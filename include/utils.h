@@ -38,12 +38,12 @@ void _logf(const char *src, const char *log_msg_fmt, ...);
 void _getinput(char *input, u32 size);
 
 // display bytes array
-void _display_bytes(const u8 *bytes, u32 size);
+void _display_bytes(const char *bytes, u32 size);
 
 // convert bool array to byte array
-void _convert_to_bytes(const bool *bool_arr, u8 *buffer, u32 size);
+void _convert_to_bytes(const bool *bool_arr, char *buffer, u32 size);
 
 // convert byte array to bool array
-void _convert_to_bool(const u8 *byte_arr, bool *buffer, u32 size);
+void _convert_to_bool(const char *byte_arr, bool *buffer, u32 size);
 
 #endif // UTILS_H
