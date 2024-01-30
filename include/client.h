@@ -17,14 +17,17 @@
 #include "utils.h"
 #include "ui.h"
 
-#define DEFAULT_IP_ADDRESS  "127.0.0.123"
-#define DEFAULT_PORT        12345
+#define DEFAULT_IP_ADDRESS   "127.0.0.1"
+#define DEFAULT_PORT         12345
+#define DEFAULT_CLIENT_NAME  "client"
+#define CLIENT_NAME_SIZE     256
 
 class Client 
 {
-	int sockfd;	
 	struct sockaddr_in server_addr;
-	UI ui;
+	char   client_name[CLIENT_NAME_SIZE];
+	int    sockfd;	
+	UI     ui;
 
 	public:
 		Client();
@@ -34,6 +37,7 @@ class Client
 		void init(void);
 	
 	private:
+		void _set_client_name(void);
 		void _handle_server(void);
 };
 
