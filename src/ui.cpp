@@ -20,9 +20,7 @@ void UI::display_banner(void)
 			 "|__/|__/\\____/_/   \\__,_/_/\\___/ \n\n"
 		 	 "-----------------------------       \n"
 		 	 "|      Guess the word!      |       \n"	
-		 	 "-----------------------------" << std::endl;
-	std::cout << "|     Attempts left: " << attempts << "      |" << std::endl;
-	std::cout << "-----------------------------" << "\n" << std::endl;
+		 	 "-----------------------------\n\n" << std::endl;
 }
 
 void UI::display_result(const bool *letters)
@@ -34,7 +32,7 @@ void UI::display_result(const bool *letters)
 	}
 	else {
 		std::cout << "-----------------------------" << std::endl;
-		std::cout << "|         YOU LOST          |" << std::endl;
+		std::cout << "|     Word wasn't guessed   |" << std::endl;
 		std::cout << "-----------------------------\n\n\n" << std::endl;
 	}
 }
@@ -44,7 +42,7 @@ void UI::display_word(const char* word, const bool *letters)
 	u32 counter;
 
 	counter = 0;
-	std::cout << "[server]: \"" << word << "\" - ";
+	std::cout << "\"" << word << "\" - ";
 	for(u32 i = 0; i < WORD_LENGTH; i++) {
 		if(letters[i]) {
 			std::cout << " " << i + 1;
@@ -56,7 +54,9 @@ void UI::display_word(const char* word, const bool *letters)
 	}
 	
 	if(!counter)
-		std::cout << "there isn't any correct letters" << std::endl;
+		std::cout << "there isn't any correct letters";
 	else
-		std::cout << " letters are correct" << std::endl;
+		std::cout << " letters are correct";
+
+	std::cout << " (" << attempts - 1 << " attempts left)\n" << std::endl;
 }
