@@ -29,18 +29,21 @@ enum exception {
 };
 
 // record logs
-void log(const char *src, const char *log_msg);
+void _log(const char *src, const char *log_msg);
 
 // record formatted logs
-void logf(const char *src, const char *log_msg_fmt, ...);
+void _logf(const char *src, const char *log_msg_fmt, ...);
 
 // get correct user input
-void getinput(char *buffer, u32 size);
+void _getinput(char *input, u32 size);
+
+// display bytes array
+void _display_bytes(const u8 *bytes, u32 size);
 
 // convert bool array to byte array
-void convert_to_bytes(const bool *bool_arr, u8 *buffer, u32 size);
+void _convert_to_bytes(const bool *bool_arr, u8 *buffer, u32 size);
 
 // convert byte array to bool array
-void convert_to_bool(const u8 *byte_arr, bool *buffer, u32 size);
+void _convert_to_bool(const u8 *byte_arr, bool *buffer, u32 size);
 
 #endif // UTILS_H
