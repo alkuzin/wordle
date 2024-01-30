@@ -7,7 +7,7 @@
 #include "../include/ui.h"
 
 UI::UI(void) {
-	attempts = ATTEMPTS_LIMIT;
+	set_attempts(ATTEMPTS_LIMIT);
 }
 
 void UI::display_banner(void) 

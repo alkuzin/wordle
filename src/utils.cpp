@@ -64,7 +64,7 @@ void _getinput(char *input, u32 size)
     }
 }
 
-void _display_bytes(const u8 *bytes, u32 size)
+void _display_bytes(const char *bytes, u32 size)
 {
 	putchar('{');
 	for(u32 i = 0; i < size; i++) {
@@ -77,7 +77,7 @@ void _display_bytes(const u8 *bytes, u32 size)
     putchar('\n');
 }
 
-void _convert_to_bytes(const bool *bool_arr, u8 *buffer, u32 size)
+void _convert_to_bytes(const bool *bool_arr, char *buffer, u32 size)
 {
 	u32 i;
 
@@ -89,7 +89,7 @@ void _convert_to_bytes(const bool *bool_arr, u8 *buffer, u32 size)
 	buffer[size] = '\0';
 }
 
-void _convert_to_bool(const u8 *byte_arr, bool *buffer, u32 size)
+void _convert_to_bool(const char *byte_arr, bool *buffer, u32 size)
 {
 	u32 i;
 
