@@ -17,7 +17,7 @@
 #include "utils.h"
 #include "ui.h"
 
-#define DEFAULT_IP_ADDRESS   "127.0.0.127"
+#define DEFAULT_IP_ADDRESS   "127.0.0.1"
 #define DEFAULT_PORT         12345
 #define DEFAULT_CLIENT_NAME  "client"
 #define CLIENT_NAME_SIZE     256
