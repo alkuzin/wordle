@@ -8,10 +8,9 @@
 #define GAME_H
 
 #include <iostream>
-#include <vector>
 #include <fstream>
 #include <cstring>
-#include <ctime>
+#include <vector>
 #include "utils.h"
 
 #define DEFAULT_WORDLIST_PATH  "wordlist.txt"
@@ -24,9 +23,9 @@ class Game
 {
 	private:
 		char wordlist_path[WORDLIST_PATH_LENGTH];
+		char hidden_word[WORD_LENGTH + 1];
 	
 	protected:
-		char hidden_word[WORD_LENGTH + 1];
 		u32  attempts;
 
 	public:
@@ -35,10 +34,10 @@ class Game
 		void process_input(const char *input, bool *letters);
 		void set_wordlist_path(const char *wordlist_path);
 		bool is_guessed(const bool *letters);
-		void decrement_attempts(void);
 		void update_hidden_word(void);
 		char *get_hidden_word(void);
-		void reset_attempts(void);
+		void set_attempts(u32 attempts);
+		void decrement_attempts(void);
 		u32  get_attempts(void);
 };
 
