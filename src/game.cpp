@@ -10,6 +10,7 @@ Game::Game(void)
 {
 	std::strncpy(wordlist_path, DEFAULT_WORDLIST_PATH, WORDLIST_PATH_LENGTH);
 	attempts = ATTEMPTS_LIMIT;
+	
 	update_hidden_word();
 }
 
@@ -72,14 +73,14 @@ bool Game::is_guessed(const bool *letters)
 	return true;
 }
 
+void Game::set_attempts(u32 attempts) {
+	this->attempts = attempts;
+}
+
 u32 Game::get_attempts(void) {
 	return attempts;
 }
 
 void Game::decrement_attempts(void) {
 	attempts--;
-}
-
-void Game::reset_attempts(void) {
-	attempts = ATTEMPTS_LIMIT;
 }
