@@ -6,9 +6,9 @@
 
 #include "../include/utils.h"
 
-static void get_date(char *date);
+static void _get_date(char *date);
 
-static void get_date(char *date)
+static void _get_date(char *date)
 {
     time_t current_time;
 
@@ -16,26 +16,26 @@ static void get_date(char *date)
     strftime(date, DATE_SIZE, "%c", localtime(&current_time));
 }
 
-void error(const char *error_msg)
+void _error(const char *error_msg)
 {
 	fprintf(stderr, "error: %s\n", error_msg);
 	exit(EXIT_FAILURE);
 }
 
-void log(const char *src, const char *log_msg)
+void _log(const char *src, const char *log_msg)
 {
 	char date[DATE_SIZE];
 
-	get_date(date);
+	_get_date(date);
 	printf("[%s] %s: %s\n", date, src, log_msg);
 }
 
-void logf(const char *src, const char *log_msg_fmt, ...)
+void _logf(const char *src, const char *log_msg_fmt, ...)
 {
 	va_list args;
 	char    date[DATE_SIZE];
 
-	get_date(date);
+	_get_date(date);
 	printf("[%s] %s: ", date, src);
 
 	va_start(args, log_msg_fmt);
@@ -43,20 +43,20 @@ void logf(const char *src, const char *log_msg_fmt, ...)
 	va_end(args);
 }
 
-void getinput(char *buffer, u32 size) 
+void _getinput(char *input, u32 size) 
 {
 	u32 i;
 
     i = 0;
-	fgets(buffer, size, stdin);
+	fgets(input, size, stdin);
 
-	if (buffer) {
+	if (input) {
         
-		while (buffer[i] != '\n' && buffer[i] != '\0')
+		while (input[i] != '\n' && input[i] != '\0')
 			i++;
         
-		if (buffer[i] == '\n')
-            buffer[i] = '\0';
+		if (input[i] == '\n')
+            input[i] = '\0';
 		else {
             while (getchar() != '\n')
                 continue;
@@ -64,7 +64,20 @@ void getinput(char *buffer, u32 size)
     }
 }
 
-void convert_to_bytes(const bool *bool_arr, u8 *buffer, u32 size)
+void _display_bytes(const u8 *bytes, u32 size)
+{
+	putchar('{');
+	for(u32 i = 0; i < size; i++) {
+    	printf(" %d", bytes[i]);
+        	if(i < (size - 1))
+         		putchar(',');
+	}
+	putchar(' ');
+    putchar('}');
+    putchar('\n');
+}
+
+void _convert_to_bytes(const bool *bool_arr, u8 *buffer, u32 size)
 {
 	u32 i;
 
@@ -76,8 +89,7 @@ void convert_to_bytes(const bool *bool_arr, u8 *buffer, u32 size)
 	buffer[size] = '\0';
 }
 
-// convert byte array to bool array
-void convert_to_bool(const u8 *byte_arr, bool *buffer, u32 size)
+void _convert_to_bool(const u8 *byte_arr, bool *buffer, u32 size)
 {
 	u32 i;
 
