@@ -86,8 +86,6 @@ void Client::_handle_server(void)
 		
 	_logf("client", "sent %d bytes\n", sent_bytes);
 
-
-
 	do {
 		std::memset(attempts_bytes, 0, sizeof(attempts_bytes));
 		std::memset(letters, 0, sizeof(letters));
