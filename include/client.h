@@ -22,6 +22,7 @@
 #define DEFAULT_CLIENT_NAME  "client"
 #define CLIENT_NAME_SIZE     256
 #define ATTEMPTS_BYTES_SIZE  12
+#define CLIENT_INVITATION    "#####"
 
 class Client 
 {
