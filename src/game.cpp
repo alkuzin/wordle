@@ -10,8 +10,7 @@ Game::Game(void)
 {
 	std::strncpy(wordlist_path, DEFAULT_WORDLIST_PATH, WORDLIST_PATH_LENGTH);
 	attempts = ATTEMPTS_LIMIT;
-	
-	update_hidden_word();
+	_set_hidden_words();
 }
 
 void Game::process_input(const char *input, bool *letters)
@@ -24,7 +23,7 @@ void Game::process_input(const char *input, bool *letters)
 		i++;
 	}
 	
-	while(i < WORDLIST_LENGTH) {
+	while(i < WORD_LENGTH) {
 		letters[i] = false;	
 		i++;
 	}
@@ -36,27 +35,34 @@ void Game::set_wordlist_path(const char *wordlist_path)
 	std::strncpy(this->wordlist_path, wordlist_path, WORDLIST_PATH_LENGTH);
 }
 
-void Game::update_hidden_word(void)
+void Game::update_hidden_word(void) 
 {
-	std::ifstream wordlist_file(wordlist_path);
 	u32 random_word_index; 	
-	std::string line;
-	u32 i; 	
 
-	if(!wordlist_file.is_open())
-		throw WORDLIST_FILE_OPEN_EXCEPTION;
-
-	i = 0;
 	srand(time(NULL));
 	random_word_index = rand() % (WORDLIST_LENGTH - 1) + 1;
 
-	while (std::getline(wordlist_file, line) && (i++ < random_word_index))
-		continue;
-	
-	wordlist_file.close();
-	
-	std::strncpy(hidden_word, line.c_str(), WORD_LENGTH);
+	std::strncpy(hidden_word, hidden_words.at(random_word_index).c_str(), WORD_LENGTH);
 	hidden_word[WORD_LENGTH] = '\0';
+}
+
+void Game::_set_hidden_words(void)
+{
+	std::ifstream wordlist_file;
+	std::string word;
+
+	wordlist_file.open(wordlist_path, std::ios::in);
+	
+	if(!wordlist_file.is_open()) {
+		std::cerr << "CANNOT OPEN WORDLIST FILE: " << wordlist_path << std::endl;
+		exit(1);
+		//throw WORDLIST_FILE_OPEN_EXCEPTION;
+	}
+
+	while (std::getline(wordlist_file, word))
+		hidden_words.push_back(word);	
+	
+	wordlist_file.close();	
 }
 
 char *Game::get_hidden_word(void) {
