@@ -38,6 +38,16 @@ Server::~Server(void)
 	_log("server", "shutdown");
 }
 
+void Server::_show_server_info(void) 
+{
+	// Display server ip address and port
+	char ip_addr_buffer[INET_ADDRSTRLEN];
+
+	// Convert IP address to string
+	inet_ntop(AF_INET, &(server_addr.sin_addr.s_addr), ip_addr_buffer, INET_ADDRSTRLEN);
+	_logf("server", "ip: %s port: %hu\n", ip_addr_buffer, server_addr.sin_port);
+}
+
 void Server::init(void)
 {
 	if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
@@ -45,19 +55,15 @@ void Server::init(void)
 
 	_log("server", "socket creation successfull");	
 
-	// Display server ip address and port
-	char ip_addr_buffer[INET_ADDRSTRLEN];
-
-	// Convert IP address to string
-	inet_ntop(AF_INET, &(server_addr.sin_addr.s_addr), ip_addr_buffer, INET_ADDRSTRLEN);
-	_logf("server", "ip: %s port: %hu\n", ip_addr_buffer, server_addr.sin_port);
+	_show_server_info();
 
 	_bind();
 
-	_log("server", "handle client");	
-	while(true)
+	while(true) {
+		_log("server", "--- handle client ---");	
 		_handle_client();
-	_log("server", "end handle client");
+		std::cout << std::endl;
+	}
 }
 
 void Server::_bind(void) 
@@ -68,9 +74,22 @@ void Server::_bind(void)
 	_log("server", "bind successfull");
 }
 
+void Server::_show_client_info(void)
+{
+	char ip_addr[INET_ADDRSTRLEN];
+	
+	_get_client_ip(ip_addr);
+	std::cout << std::endl;
+	_logf("server", "receiving message from client (ip: %s port: %hu)\n", ip_addr,
+	client_addr.sin_port);
+}
+
+void Server::_get_client_ip(char *buffer) {
+	inet_ntop(AF_INET, &(client_addr.sin_addr.s_addr), buffer, INET_ADDRSTRLEN);
+}
+
 void Server::_handle_client(void)
 {
-	char ip_addr_buffer[INET_ADDRSTRLEN];
 	char hidden_word[WORD_LENGTH + 1];
 	char message[WORD_LENGTH + 1];
 	bool letters[WORD_LENGTH];
@@ -80,54 +99,46 @@ void Server::_handle_client(void)
 	char bytes[WORD_LENGTH + 1];
 	u32  client_addr_len;
 	u32  attempts;
-	int received_bytes;
-	int sent_array_bytes;
-	int sent_attempts_bytes;
+	int  received_bytes;
+	int  sent_array_bytes;
+	int  sent_attempts_bytes;
+
+	char client_ip[INET_ADDRSTRLEN];
 	
 	// set hidden word
 	game.update_hidden_word();
-	std::memset(hidden_word, 0, sizeof(hidden_word));
 	std::strncpy(hidden_word, game.get_hidden_word(), WORD_LENGTH);
-	_logf("server", "hidden word: '%s'\n", hidden_word);	
+	_logf("server", "set hidden word: (%s)\n", hidden_word);	
 
 	attempts = ATTEMPTS_LIMIT;
-	game.set_attempts(ATTEMPTS_LIMIT);
-	_logf("server", "set attempts limit: '%u'\n", attempts);	
-	
+	_logf("server", "set attempts limit: (%u)\n", attempts);	
+		
 	do {
 		std::memset(attempts_bytes, 0, sizeof(attempts_bytes));
 		std::memset(bytes,   0, sizeof(bytes));
 		std::memset(message, 0, sizeof(message));
 		std::memset(letters, 0, sizeof(letters));
+		
 		attempts = game.get_attempts();
+		_utoa(attempts, attempts_bytes);
 		
-		snprintf(attempts_bytes, sizeof(attempts_bytes), "%u", attempts);
-		attempts_bytes[ATTEMPTS_BYTES_SIZE] = '\0';
-		
-		std::cout << std::endl;
-		_log("server", "waiting client response");
 		received_bytes = recvfrom(sockfd, message, sizeof(message),
-				 MSG_WAITALL, (struct sockaddr *)&client_addr, &client_addr_len);
+		MSG_WAITALL, (struct sockaddr *)&client_addr, &client_addr_len);
 		message[WORD_LENGTH] = '\0';
-	
-		std::memset(ip_addr_buffer, 0, sizeof(ip_addr_buffer));
-		
-		// show client information
-		inet_ntop(AF_INET, &(client_addr.sin_addr.s_addr), ip_addr_buffer, INET_ADDRSTRLEN);
-		ip_addr_buffer[INET_ADDRSTRLEN] = '\0';	
-		_logf("server", "receiving message from client [ip: %s port: %hu]\n", ip_addr_buffer,
-			  client_addr.sin_port);
 
-		if(std::strncmp(ip_addr_buffer, "0.0.0.0", 7) == 0)
+		_get_client_ip(client_ip);
+		
+		if(std::strncmp(client_ip, "0.0.0.0", 7) == 0 && client_addr.sin_port == 0)
 			continue;
 		
 		if(std::strncmp(message, "?", 1) == 0)
 			continue;
 
+		_show_client_info();
+
 		_logf("server", "received %d bytes from client\n", received_bytes);	
-		_logf("server", "client send message: \"%s\"\n", message);
+		_logf("server", "client send message: (%s)\n", message);
 		
-		_log("server", "processing word");
 		game.process_input(message, letters);
 		
 		_logf("server", "%s", "converting bool array to bytes: ");
@@ -137,22 +148,22 @@ void Server::_handle_client(void)
 		_display_bytes(bytes, WORD_LENGTH);	
 
 		sent_array_bytes = sendto(sockfd, bytes, sizeof(bytes), MSG_CONFIRM,
-			  (struct sockaddr *)&client_addr, sizeof(client_addr));
+		(struct sockaddr *)&client_addr, sizeof(client_addr));
 		_logf("server", "sent %d bytes of letters to client\n", sent_array_bytes);	
 	
-		_logf("server", "sending the number of attempts left to client: '%s'\n", attempts_bytes);
+		_logf("server", "sending the number of attempts left to client: (%s)\n", attempts_bytes);
 		sent_attempts_bytes = sendto(sockfd, attempts_bytes, sizeof(attempts_bytes), MSG_CONFIRM,
-			  (struct sockaddr *)&client_addr, sizeof(client_addr));
+		(struct sockaddr *)&client_addr, sizeof(client_addr));
 		_logf("server", "sent %d bytes of attempts to client\n", sent_attempts_bytes);	
 		
 		if(game.is_guessed(letters))
 			break;
 
 		game.decrement_attempts();
-		_logf("server", "attempts left: %u\n", game.get_attempts());
+		_logf("server", "(attempts left: %u)\n", game.get_attempts());
 
 	} while(game.get_attempts());
-			
-	_log("server", "client finished game");
-	std::cout << std::endl;
+	
+	game.set_attempts(ATTEMPTS_LIMIT);
+	_log("server", "--- client finished game ---");
 }

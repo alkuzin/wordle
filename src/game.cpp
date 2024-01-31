@@ -10,6 +10,7 @@ Game::Game(void)
 {
 	std::strncpy(wordlist_path, DEFAULT_WORDLIST_PATH, WORDLIST_PATH_LENGTH);
 	attempts = ATTEMPTS_LIMIT;
+	set_attempts(ATTEMPTS_LIMIT);
 	_set_hidden_words();
 }
 

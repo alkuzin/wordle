@@ -6,21 +6,20 @@
 
 #include "../include/utils.h"
 
-void _error(const char *error_msg)
+void _utoa(u32 n, char *buffer)
 {
-	fprintf(stderr, "error: %s\n", error_msg);
-	exit(EXIT_FAILURE);
+	snprintf(buffer, UTOA_SIZE, "%u", n);
+	buffer[UTOA_SIZE] = '\0';
 }
 
-void _log(const char *src, const char *log_msg)
-{
-	printf("%s: %s\n", src, log_msg);
+void _log(const char *src, const char *log_msg) {
+	std::cout << "[" << src << "]: " << log_msg << std::endl;
 }
 
 void _logf(const char *src, const char *log_msg_fmt, ...)
 {
 	va_list args;
-	printf("%s: ", src);
+	std::cout << "[" << src << "]: "; 
 
 	va_start(args, log_msg_fmt);
 	vprintf(log_msg_fmt, args);
