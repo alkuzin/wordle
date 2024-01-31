@@ -80,10 +80,9 @@ void Client::_handle_server(void)
 	int received_array_bytes;
 	int received_attempts_bytes;
 		
-	std::strncpy(message, "?", WORD_LENGTH);
+	std::strncpy(message, CLIENT_INVITATION, WORD_LENGTH + 1);
 	sent_bytes = sendto(sockfd, message, sizeof(message), MSG_CONFIRM,
 		  (struct sockaddr *)&server_addr, sizeof(server_addr));
-		
 	_logf("client", "sent %d bytes\n", sent_bytes);
 
 	do {
