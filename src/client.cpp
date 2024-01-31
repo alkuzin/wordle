@@ -79,6 +79,14 @@ void Client::_handle_server(void)
 	int sent_bytes;
 	int received_array_bytes;
 	int received_attempts_bytes;
+		
+	std::strncpy(message, "?", WORD_LENGTH);
+	sent_bytes = sendto(sockfd, message, sizeof(message), MSG_CONFIRM,
+		  (struct sockaddr *)&server_addr, sizeof(server_addr));
+		
+	_logf("client", "sent %d bytes\n", sent_bytes);
+
+
 
 	do {
 		std::memset(attempts_bytes, 0, sizeof(attempts_bytes));
