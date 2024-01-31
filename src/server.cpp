@@ -8,9 +8,6 @@
 
 Server::Server(void)
 {
-	std::memset(&server_addr, 0, sizeof(server_addr));
-	std::memset(&client_addr, 0, sizeof(client_addr));
-	
 	server_addr.sin_family      = AF_INET;
 	server_addr.sin_port        = DEFAULT_PORT;
 	server_addr.sin_addr.s_addr = INADDR_ANY;
@@ -28,9 +25,6 @@ Server::Server(const char *ip_addr, u16 port, const char *wordlist_path)
 	if(port <= 1024)
 		throw FORBIDDEN_PORT_EXCEPTION;	
 	
-	std::memset(&server_addr, 0, sizeof(server_addr));
-	std::memset(&client_addr, 0, sizeof(client_addr));
-	
 	server_addr.sin_family      = AF_INET;
 	server_addr.sin_port        = port;
 	server_addr.sin_addr.s_addr = inet_addr(ip_addr);
@@ -40,9 +34,7 @@ Server::Server(const char *ip_addr, u16 port, const char *wordlist_path)
 
 Server::~Server(void) 
 {
-	close(sockfd);
-	shutdown(sockfd, SHUT_RDWR);
-	
+	close(sockfd);	
 	_log("server", "shutdown");
 }
 
@@ -62,8 +54,10 @@ void Server::init(void)
 
 	_bind();
 
+	_log("server", "handle client");	
 	while(true)
 		_handle_client();
+	_log("server", "end handle client");
 }
 
 void Server::_bind(void) 
@@ -116,12 +110,20 @@ void Server::_handle_client(void)
 				 MSG_WAITALL, (struct sockaddr *)&client_addr, &client_addr_len);
 		message[WORD_LENGTH] = '\0';
 	
+		std::memset(ip_addr_buffer, 0, sizeof(ip_addr_buffer));
+		
 		// show client information
 		inet_ntop(AF_INET, &(client_addr.sin_addr.s_addr), ip_addr_buffer, INET_ADDRSTRLEN);
 		ip_addr_buffer[INET_ADDRSTRLEN] = '\0';	
 		_logf("server", "receiving message from client [ip: %s port: %hu]\n", ip_addr_buffer,
 			  client_addr.sin_port);
+
+		if(std::strncmp(ip_addr_buffer, "0.0.0.0", 7) == 0)
+			continue;
 		
+		if(std::strncmp(message, "?", 1) == 0)
+			continue;
+
 		_logf("server", "received %d bytes from client\n", received_bytes);	
 		_logf("server", "client send message: \"%s\"\n", message);
 		
@@ -153,11 +155,4 @@ void Server::_handle_client(void)
 			
 	_log("server", "client finished game");
 	std::cout << std::endl;
-			
-	_log("server", "setting new hidden word");
-			
-	game.update_hidden_word();
-	game.set_attempts(ATTEMPTS_LIMIT);
-	std::memset(hidden_word, 0, sizeof(hidden_word));
-	std::strncpy(hidden_word, game.get_hidden_word(), WORD_LENGTH);
 }
