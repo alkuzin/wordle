@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <string>
 #include <cstring>
 #include <vector>
 #include "utils.h"
@@ -23,6 +24,7 @@ class Game
 {
 	private:
 		char wordlist_path[WORDLIST_PATH_LENGTH];
+		std::vector<std::string> hidden_words;
 		char hidden_word[WORD_LENGTH + 1];
 	
 	protected:
@@ -39,6 +41,9 @@ class Game
 		void set_attempts(u32 attempts);
 		void decrement_attempts(void);
 		u32  get_attempts(void);
+	
+	private:
+		void _set_hidden_words(void);
 };
 
 #endif // GAME_H
