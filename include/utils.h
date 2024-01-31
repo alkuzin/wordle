@@ -18,6 +18,7 @@ typedef unsigned short  u16;
 typedef unsigned char   u8;
 
 #define DATE_SIZE 32
+#define UTOA_SIZE 12
 
 enum exception {
 	INVALID_IP_ADDRESS_EXCEPTION,
@@ -27,6 +28,9 @@ enum exception {
 	WORDLIST_FILE_OPEN_EXCEPTION,
 	MEMORY_ALLOCATION_EXCEPTION
 };
+
+// unsigned int (u32) to string
+void _utoa(u32 n, char *buffer);
 
 // record logs
 void _log(const char *src, const char *log_msg);
