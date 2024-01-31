@@ -41,11 +41,11 @@ Server::~Server(void)
 void Server::_show_server_info(void) 
 {
 	// Display server ip address and port
-	char ip_addr_buffer[INET_ADDRSTRLEN];
+	char ip_addr[INET_ADDRSTRLEN];
 
 	// Convert IP address to string
-	inet_ntop(AF_INET, &(server_addr.sin_addr.s_addr), ip_addr_buffer, INET_ADDRSTRLEN);
-	_logf("server", "ip: %s port: %hu\n", ip_addr_buffer, server_addr.sin_port);
+	inet_ntop(AF_INET, &(server_addr.sin_addr.s_addr), ip_addr, INET_ADDRSTRLEN);
+	_logf("server", "ip: %s port: %u\n", ip_addr, server_addr.sin_port);
 }
 
 void Server::init(void)
@@ -56,7 +56,6 @@ void Server::init(void)
 	_log("server", "socket creation successfull");	
 
 	_show_server_info();
-
 	_bind();
 
 	while(true) {
@@ -80,7 +79,7 @@ void Server::_show_client_info(void)
 	
 	_get_client_ip(ip_addr);
 	std::cout << std::endl;
-	_logf("server", "receiving message from client (ip: %s port: %hu)\n", ip_addr,
+	_logf("server", "receiving message from client (ip: %s port: %u)\n", ip_addr,
 	client_addr.sin_port);
 }
 
@@ -90,29 +89,27 @@ void Server::_get_client_ip(char *buffer) {
 
 void Server::_handle_client(void)
 {
-	char hidden_word[WORD_LENGTH + 1];
-	char message[WORD_LENGTH + 1];
-	bool letters[WORD_LENGTH];
-
 	char attempts_bytes[ATTEMPTS_BYTES_SIZE];
-	
+	char hidden_word[WORD_LENGTH + 1];
+	char client_ip[INET_ADDRSTRLEN];
+	char message[WORD_LENGTH + 1];
 	char bytes[WORD_LENGTH + 1];
+	bool letters[WORD_LENGTH];
+	int  sent_attempts_bytes;
+	int  sent_array_bytes;
+	int  received_bytes;
 	u32  client_addr_len;
 	u32  attempts;
-	int  received_bytes;
-	int  sent_array_bytes;
-	int  sent_attempts_bytes;
 
-	char client_ip[INET_ADDRSTRLEN];
-	
 	// set hidden word
 	game.update_hidden_word();
+	std::memset(hidden_word, 0, sizeof(hidden_word));
 	std::strncpy(hidden_word, game.get_hidden_word(), WORD_LENGTH);
 	_logf("server", "set hidden word: (%s)\n", hidden_word);	
 
 	attempts = ATTEMPTS_LIMIT;
 	_logf("server", "set attempts limit: (%u)\n", attempts);	
-		
+	
 	do {
 		std::memset(attempts_bytes, 0, sizeof(attempts_bytes));
 		std::memset(bytes,   0, sizeof(bytes));
@@ -127,11 +124,13 @@ void Server::_handle_client(void)
 		message[WORD_LENGTH] = '\0';
 
 		_get_client_ip(client_ip);
-		
+	
+		// skip 0.0.0.0 with port 0
 		if(std::strncmp(client_ip, "0.0.0.0", 7) == 0 && client_addr.sin_port == 0)
 			continue;
 		
-		if(std::strncmp(message, "?", 1) == 0)
+		// skip client invitation word
+		if(std::strncmp(message, CLIENT_INVITATION, WORD_LENGTH + 1) == 0)
 			continue;
 
 		_show_client_info();
