@@ -22,6 +22,7 @@
 #define DEFAULT_PORT       	 12345 
 #define WORD_LENGHT          5
 #define ATTEMPTS_BYTES_SIZE  12
+#define CLIENT_INVITATION    "#####"
 
 class Server 
 {
