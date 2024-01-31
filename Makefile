@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror -g
 
 SRC  = server client utils game ui
 SRCS = $(addsuffix .cpp, $(SRC))
