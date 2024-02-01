@@ -5,23 +5,12 @@
  */
 
 #include "include/server.h"
-#define SHARED_MEMORY_OBJECT_NAME "server_shared_memory"
-#define SHARED_MEMORY_OBJECT_SIZE 128
-
 #include <signal.h>
-#define SIZE 20
+
+void handle_sigint(int signal);
 
 int shm;
 char *addr;
-
-void handle_sigint(int signal) 
-{
-	std::cout << "\nsignal: " << signal << std::endl;
-
-	close(shm);
-	_log("server", "closing shared memory successfull");
-	exit(0);
-}
 
 int main(int argc, char **argv) 
 {
@@ -32,38 +21,42 @@ int main(int argc, char **argv)
         	exit(EXIT_FAILURE);
     	}
 		
+		// keyboard interruption handling
 		signal(SIGINT, handle_sigint);
-		//char data[SIZE] = "TEST SHARED MEMORY";
 	
-		addr = NULL;
 		shm = 0;
+		addr = NULL;
 		
-		if((shm = shm_open(SHARED_MEMORY_OBJECT_NAME, O_CREAT|O_RDWR, 0777)) == -1) {
-			perror("shm_open");
+		if(!shm) {
+			munmap(addr, SHARED_MEMORY_OBJECT_SIZE);
+			close(shm);
 			shm_unlink(SHARED_MEMORY_OBJECT_NAME);
-			exit(1);
+			_log("server", "unlink shared memory successfull");
+		}
+
+		if((shm = shm_open(SHARED_MEMORY_OBJECT_NAME, O_CREAT|O_RDWR, 0777)) == -1) {
+			perror("error (shm_open)");
+			shm_unlink(SHARED_MEMORY_OBJECT_NAME);
+			exit(EXIT_FAILURE);
 		}
 	
 		if(!shm) {
 			if((shm = ftruncate(shm, SHARED_MEMORY_OBJECT_SIZE + 1)) == -1) {
-				std::cerr << "error to create shared memory (ftruncate)" << std::endl;
-				exit(1);
+				perror("error (ftruncate)");
+				exit(EXIT_FAILURE);
 			}
 			_log("server", "ftruncate successfull");
 		}
-		std::cout << "shm: " << shm << std::endl;
-		printf("addr: <%p>\n", addr);
-		addr = (char *)mmap(0, SHARED_MEMORY_OBJECT_SIZE+1, PROT_WRITE|PROT_READ, MAP_SHARED, shm, 0);
-    	if ( addr == (char*)-1 ) {
-        	perror("mmap");
-        	exit(1);
-    	}
-		printf("addr: <%p>\n", addr);
-		//std::memcpy(addr, data, sizeof(data));
-		//addr[std::strlen(data)] = '\0';
-		//_log("server", "filling shared memory successfull");
 		
-		//printf("addr content: %s\n", addr);
+		addr = (char *)mmap(0, SHARED_MEMORY_OBJECT_SIZE+1, PROT_WRITE|PROT_READ,
+		MAP_SHARED, shm, 0);
+    	
+		if (addr == (char *) - 1) {
+        	perror("error (mmap)");
+        	exit(EXIT_FAILURE);
+    	}
+		
+		_logf("server", "set shared memory address (addr): <%p>\n", addr);
 
 		if(argc == 4) {
 			char wordlist_path[WORDLIST_PATH_LENGTH];
@@ -125,4 +118,14 @@ int main(int argc, char **argv)
 		};
 	}
 	return 0;
+}
+
+void handle_sigint(int signal) 
+{
+	std::cout << "\nkeyboard interruption (" << signal << ")" << std::endl;
+
+	munmap(addr, SHARED_MEMORY_OBJECT_SIZE);
+	close(shm);
+	_log("server", "closing shared memory successfull");
+	exit(EXIT_SUCCESS);
 }
