@@ -17,9 +17,13 @@ int main(int argc, char **argv)
 
 		if(argc == 3) {
 			char ip_addr[INET_ADDRSTRLEN];
-	
+			u16  port;	
+
+			std::memset(ip_addr, 0, sizeof(ip_addr));
 			std::strncpy(ip_addr, argv[1], INET_ADDRSTRLEN);
-			Client client(ip_addr, atoi(argv[2]));
+			port = atoi(argv[2]);
+
+			Client client(ip_addr, port);
 			client.init();
 		}
 		else {
