@@ -16,8 +16,8 @@ int main(int argc, char **argv)
     	}
 
 		if(argc == 4) {
-			char ip_addr[INET_ADDRSTRLEN];
 			char wordlist_path[WORDLIST_PATH_LENGTH];
+			char ip_addr[INET_ADDRSTRLEN];
 			u16  port;
 
 			std::memset(ip_addr, 0, sizeof(ip_addr));
