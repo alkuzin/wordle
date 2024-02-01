@@ -3,3 +3,6 @@ objs/
 *.swp
 client
 server
+a.out
+test.cpp
+temp.cpp
