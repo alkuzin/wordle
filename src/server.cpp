@@ -34,6 +34,7 @@ Server::Server(const char *ip_addr, u16 port, const char *wordlist_path)
 
 Server::~Server(void) 
 {
+	close(_shm);
 	close(sockfd);	
 	_log("server", "shutdown");
 }
@@ -109,7 +110,14 @@ void Server::_handle_client(void)
 
 	attempts = ATTEMPTS_LIMIT;
 	_logf("server", "set attempts limit: (%u)\n", attempts);	
-	
+
+	std::memcpy(_addr, hidden_word, sizeof(hidden_word));
+	_addr[WORD_LENGTH] = '\0';
+	_logf("server", "filling shared memory successfull: (%s)", _addr);
+
+	//_fill_shared_memory(hidden_word, WORD_LENGTH);
+	//std::cout << "ADDR: " << addr << std::endl;
+
 	do {
 		std::memset(attempts_bytes, 0, sizeof(attempts_bytes));
 		std::memset(bytes,   0, sizeof(bytes));
@@ -165,4 +173,10 @@ void Server::_handle_client(void)
 	
 	game.set_attempts(ATTEMPTS_LIMIT);
 	_log("server", "--- client finished game ---");
+}
+
+void Server::init_shared_memory(int shm, char *addr)
+{
+	_addr = addr;
+	_shm = shm;
 }
