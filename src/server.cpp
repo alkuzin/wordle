@@ -59,6 +59,8 @@ void Server::init(void)
 	_show_server_info();
 	_bind();
 
+	_logf("server", "set shared memory file descriptor (_shm): %d\n", _shm);
+	_logf("server", "set shared memory address (_addr): <%p>\n", _addr);
 	while(true) {
 		_log("server", "--- handle client ---");	
 		_handle_client();
@@ -110,6 +112,8 @@ void Server::_handle_client(void)
 
 	attempts = ATTEMPTS_LIMIT;
 	_logf("server", "set attempts limit: (%u)\n", attempts);	
+
+
 
 	std::memcpy(_addr, hidden_word, sizeof(hidden_word));
 	_addr[WORD_LENGTH] = '\0';
