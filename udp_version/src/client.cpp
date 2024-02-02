@@ -66,22 +66,12 @@ void Client::_handle_server(void)
 		
 	system("clear");
 	ui.display_banner();
-	
-	char ip_addr[INET_ADDRSTRLEN];
 
-	std::memset(ip_addr, 0, sizeof(ip_addr));	
-	inet_ntop(AF_INET, &(server_addr.sin_addr.s_addr), ip_addr, INET_ADDRSTRLEN);
-	ip_addr[INET_ADDRSTRLEN] = '\0';
-
-	_logf("client", "connected to server[ip: %s port: %hu]\n", ip_addr,
-           server_addr.sin_port);
-
-	//_logf("client", "attempts set: %u\n", ui.get_attempts());
+	// send client invitation message 
 	std::memset(message, 0, sizeof(message));	
 	std::strncpy(message, CLIENT_INVITATION, WORD_LENGTH + 1);
 	sendto(sockfd, message, sizeof(message), MSG_CONFIRM,
 		  (struct sockaddr *)&server_addr, sizeof(server_addr));
-	//_logf("client", "sent %d bytes\n", sent_bytes);
 
 	do {
 		std::memset(attempts_bytes, 0, sizeof(attempts_bytes));
@@ -89,26 +79,22 @@ void Client::_handle_server(void)
 		std::memset(message, 0, sizeof(message));
 		std::memset(bytes,   0, sizeof(bytes));
 
-		printf("<%s>: ", client_name);
+		// get user input
+		std::cout << "<" << client_name << ">: ";
 		_getinput(message, sizeof(message));
 		message[WORD_LENGTH] = '\0';
 
 		if(message[0] == '\0')
 			continue;
 	
-		//_logf("client", "sending message: (%s)\n", message);
 		// sending word
 		sendto(sockfd, message, sizeof(message), MSG_CONFIRM,
 			  (struct sockaddr *)&server_addr, sizeof(server_addr));
-		
-		//_logf("client", "sent %d bytes\n", sent_bytes);
 		
 		// receiving bytes array
 		recvfrom(sockfd, bytes, sizeof(bytes), MSG_WAITALL,
 		        (struct sockaddr *)&server_addr, &server_addr_len);
 		bytes[WORD_LENGTH] = '\0';
-		
-		//_logf("client", "received %d bytes of array\n", received_array_bytes);
 		
 		// converting bytes array to bool array
 		_convert_to_bool(bytes, letters, sizeof(letters));
@@ -118,11 +104,8 @@ void Client::_handle_server(void)
 		        (struct sockaddr *)&server_addr, &server_addr_len);
 		attempts_bytes[ATTEMPTS_BYTES_SIZE] = '\0';
 		
-		//_logf("client", "received %d bytes of attempts\n", received_attempts_bytes);
-		//_logf("client", "bytes of attempts '%s'\n", attempts_bytes);
+		// update attempts
 		ui.set_attempts(std::atoi(attempts_bytes));
-		
-		//_logf("client", "attempts left: %u\n", ui.get_attempts());
 		
 		ui.display_word(message, letters);
 		
