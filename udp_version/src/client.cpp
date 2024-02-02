@@ -58,32 +58,30 @@ void Client::init(void)
 
 void Client::_handle_server(void)
 {
+	char attempts_bytes[ATTEMPTS_BYTES_SIZE];
 	char message[WORD_LENGTH + 1];
 	bool letters[WORD_LENGTH];
 	char bytes[WORD_LENGTH + 1];
-	char attempts_bytes[ATTEMPTS_BYTES_SIZE];
 	u32  server_addr_len;
 		
 	system("clear");
 	ui.display_banner();
+	
+	char ip_addr[INET_ADDRSTRLEN];
 
-	char ip_addr_buffer[INET_ADDRSTRLEN];
-	inet_ntop(AF_INET, &(server_addr.sin_addr.s_addr), ip_addr_buffer, INET_ADDRSTRLEN);
-	ip_addr_buffer[INET_ADDRSTRLEN] = '\0';
+	std::memset(ip_addr, 0, sizeof(ip_addr));	
+	inet_ntop(AF_INET, &(server_addr.sin_addr.s_addr), ip_addr, INET_ADDRSTRLEN);
+	ip_addr[INET_ADDRSTRLEN] = '\0';
 
-	_logf("client", "connected to server[ip: %s port: %hu]\n", ip_addr_buffer,
+	_logf("client", "connected to server[ip: %s port: %hu]\n", ip_addr,
            server_addr.sin_port);
 
-	_logf("client", "attempts set: %u\n", ui.get_attempts());
-	
-	int sent_bytes;
-	int received_array_bytes;
-	int received_attempts_bytes;
-		
+	//_logf("client", "attempts set: %u\n", ui.get_attempts());
+	std::memset(message, 0, sizeof(message));	
 	std::strncpy(message, CLIENT_INVITATION, WORD_LENGTH + 1);
-	sent_bytes = sendto(sockfd, message, sizeof(message), MSG_CONFIRM,
+	sendto(sockfd, message, sizeof(message), MSG_CONFIRM,
 		  (struct sockaddr *)&server_addr, sizeof(server_addr));
-	_logf("client", "sent %d bytes\n", sent_bytes);
+	//_logf("client", "sent %d bytes\n", sent_bytes);
 
 	do {
 		std::memset(attempts_bytes, 0, sizeof(attempts_bytes));
@@ -98,33 +96,33 @@ void Client::_handle_server(void)
 		if(message[0] == '\0')
 			continue;
 	
-		_logf("client", "sending message: (%s)\n", message);
+		//_logf("client", "sending message: (%s)\n", message);
 		// sending word
-		sent_bytes = sendto(sockfd, message, sizeof(message), MSG_CONFIRM,
+		sendto(sockfd, message, sizeof(message), MSG_CONFIRM,
 			  (struct sockaddr *)&server_addr, sizeof(server_addr));
 		
-		_logf("client", "sent %d bytes\n", sent_bytes);
+		//_logf("client", "sent %d bytes\n", sent_bytes);
 		
 		// receiving bytes array
-		received_array_bytes = recvfrom(sockfd, bytes, sizeof(bytes), MSG_WAITALL,
+		recvfrom(sockfd, bytes, sizeof(bytes), MSG_WAITALL,
 		        (struct sockaddr *)&server_addr, &server_addr_len);
 		bytes[WORD_LENGTH] = '\0';
 		
-		_logf("client", "received %d bytes of array\n", received_array_bytes);
+		//_logf("client", "received %d bytes of array\n", received_array_bytes);
 		
 		// converting bytes array to bool array
 		_convert_to_bool(bytes, letters, sizeof(letters));
 		
 		//receiving number of attempts left
-		received_attempts_bytes = recvfrom(sockfd, attempts_bytes, sizeof(attempts_bytes), MSG_WAITALL,
+		recvfrom(sockfd, attempts_bytes, sizeof(attempts_bytes), MSG_WAITALL,
 		        (struct sockaddr *)&server_addr, &server_addr_len);
 		attempts_bytes[ATTEMPTS_BYTES_SIZE] = '\0';
 		
-		_logf("client", "received %d bytes of attempts\n", received_attempts_bytes);
-		_logf("client", "bytes of attempts '%s'\n", attempts_bytes);
+		//_logf("client", "received %d bytes of attempts\n", received_attempts_bytes);
+		//_logf("client", "bytes of attempts '%s'\n", attempts_bytes);
 		ui.set_attempts(std::atoi(attempts_bytes));
 		
-		_logf("client", "attempts left: %u\n", ui.get_attempts());
+		//_logf("client", "attempts left: %u\n", ui.get_attempts());
 		
 		ui.display_word(message, letters);
 		
