@@ -20,7 +20,6 @@
 
 #define DEFAULT_IP_ADDRESS   "127.0.0.1"
 #define DEFAULT_PORT       	 12345 
-//#define WORD_LENGHT          5
 #define CLIENT_INVITATION    "#####"
 
 class Server 
