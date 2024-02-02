@@ -40,6 +40,7 @@ class Client
 	
 	private:
 		void _set_client_name(void);
+		void _show_server_info(void);
 		void _handle_server(void);
 };
 
