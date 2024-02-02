@@ -14,13 +14,14 @@
 #include <unistd.h>
 #include <iostream>
 #include <cstring>
+
 #include "client.h"
 #include "utils.h"
 #include "game.h"
 
 #define DEFAULT_IP_ADDRESS   "127.0.0.1"
-#define DEFAULT_PORT       	 12345 
 #define CLIENT_INVITATION    "#####"
+#define DEFAULT_PORT       	 12345 
 
 class Server 
 {
