@@ -12,6 +12,7 @@
 #include <string>
 #include <cstring>
 #include <vector>
+
 #include "utils.h"
 
 #define DEFAULT_WORDLIST_PATH  "wordlist.txt"
