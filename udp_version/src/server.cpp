@@ -107,12 +107,16 @@ void Server::_handle_client(void)
 		_get_client_ip(client_ip);
 	
 		// skip 0.0.0.0 with port 0
-		if(std::strncmp(client_ip, "0.0.0.0", 7) == 0 && client_addr.sin_port == 0)
-			continue;
+		if(std::strncmp(client_ip, "0.0.0.0", 7) == 0 && client_addr.sin_port == 0) {	
+			_log("server", "received bad ip: 0.0.0.0:0 [RELOADING REQUIRED]");
+			exit(EXIT_FAILURE);
+		}
 		
 		// skip client invitation word
-		if(std::strncmp(message, CLIENT_INVITATION, WORD_LENGTH + 1) == 0)
+		if(std::strncmp(message, CLIENT_INVITATION, WORD_LENGTH + 1) == 0) {
+			_logf("server", "recived client invitation: \"%s\"\n", message);	
 			continue;
+		}
 
 		_show_client_info();
 
