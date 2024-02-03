@@ -6,19 +6,24 @@
 
 #include "../include/server.h"
 
-Server::Server(char *addr) {
+Server::Server(char *addr, sem_t *sem_s, sem_t *sem_c)
+{
 	shm_addr = addr;
+	sem_server = sem_s;
+	sem_client = sem_c;
 }
 
 void Server::init(void)
 {
-	_logf("server", "set shared memory address: <%p>\n", shm_addr);
-	
 	while(true) {
+		
 		_log("server", "--- handle client ---");	
 		_handle_client();
 		std::cout << std::endl;
+		
 	}
+
+	sem_close(sem_client);
 }
 
 void Server::send(char *message) {
@@ -40,29 +45,62 @@ void Server::_handle_client(void)
 
 	attempts = ATTEMPTS_LIMIT;
 	_logf("server", "set attempts limit: (%u)\n", attempts);	
+	
+	char buffer[UTOA_SIZE];
 
 	do {
 		std::memset(result, 0, sizeof(result));
-		
+		std::memset(shm_addr, 0, SHARED_MEMORY_BLOCK_SIZE);
+		std::memset(buffer, 0, sizeof(buffer));
 		attempts = game.get_attempts();
-
-		_logf("server", "client send message: (%s)\n", shm_addr);
 		
+		// waiting for client
+		_log("server", "waiting for client");
+		std::cout << std::endl;
+		_log("server", "[sem_wait(sem_server)]");
+		sem_wait(sem_server);
+
+		// receiving & processing word 
+		_logf("server", "client send message: (%s)\n", shm_addr);
 		game.process_input(shm_addr, letters, result, SHARED_MEMORY_BLOCK_SIZE);
 		_logf("server", "processing result: \"%s\"\n", result);	
 		send(result);
 		
-		_logf("server", "sending the number of attempts left to client: (%u)\n", attempts);
-		snprintf(shm_addr, UTOA_SIZE, "%u", attempts);
+		// liberate client
+		std::cout << std::endl;
+		_log("server", "[sem_post(sem_client)]");
+		sem_post(sem_client);
+		
+		// waiting for client
+		std::cout << std::endl;
+		_log("server", "[sem_wait(sem_server)]");
+		sem_wait(sem_server);
+	
+		// sending the number of attempts left
+		_logf("server", "attempts left: (%u)\n", attempts);
+		
+		snprintf(buffer, UTOA_SIZE, "%u", attempts);
+		std::strncpy(shm_addr, buffer, UTOA_SIZE);	
+		std::cout << "shm_addr: " << shm_addr << std::endl;
+		std::cout << "buffer: " << buffer << std::endl;
+		std::cout << "shm_addr: " << shm_addr << std::endl;
 
 		if(game.is_guessed(letters))
 			break;
 
 		game.decrement_attempts();
 		_logf("server", "(attempts left: %u)\n", game.get_attempts());
-		std::memset(shm_addr, 0, SHARED_MEMORY_BLOCK_SIZE);
 		
-		exit(0);
+		// liberate client
+		std::cout << std::endl;
+		_log("server", "[sem_post(sem_client)]");
+		sem_post(sem_client);
+		
+		// waiting for client
+		std::cout << std::endl;
+		_log("server", "[sem_wait(sem_server)]");
+		sem_wait(sem_server);
+
 	} while(game.get_attempts());
 	
 	game.set_attempts(ATTEMPTS_LIMIT);

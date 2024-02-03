@@ -6,9 +6,12 @@
 
 #include "../include/client.h"
 
-Client::Client(char *addr)
+Client::Client(char *addr, sem_t *sem_s, sem_t *sem_c)
 {
 	shm_addr = addr;	
+	sem_server = sem_s;
+	sem_client = sem_c;
+
 	_set_client_name();
 }
 
@@ -20,9 +23,7 @@ void Client::_set_client_name(void)
     	std::strncpy(client_name, DEFAULT_CLIENT_NAME, sizeof(client_name));
 }
 
-void Client::init(void)
-{
-
+void Client::init(void) {
 	_handle_server();
 }
 
@@ -32,21 +33,44 @@ void Client::_handle_server(void)
 	ui.display_banner();
 
 	do {
+		
 		std::cout << "<" << client_name << ">: ";
 		
 		// sending word
 		std::cin.getline(shm_addr, SHARED_MEMORY_BLOCK_SIZE);
-
 		_logf("client", "sent message: (%s)\n", shm_addr);
 		
-		// receiving bytes array
-		 std::cout << "Result: " << shm_addr << std::endl;
-		 
-		 std::cout << "Attempts: " << shm_addr << std::endl;
-
-		//receiving number of attempts left
-		ui.set_attempts(std::atoi(shm_addr));
-		_logf("client", "attempts left: %u\n", ui.get_attempts());
+		// liberating server 
+		_log("client", "[sem_post(sem_server)]");
+		sem_post(sem_server);
 		
+		// waiting for server
+		_log("client", "[sem_wait(sem_client)]");
+		sem_wait(sem_client);
+		
+		// receiving bytes array
+		std::cout << shm_addr << std::endl;
+		
+		// liberating server 
+		_log("client", "[sem_post(sem_server)]");
+		sem_post(sem_server);
+		
+		// waiting for server
+		_log("client", "[sem_wait(sem_client)]");
+		sem_wait(sem_client);
+		
+		//receiving number of attempts left
+		std::cout << shm_addr << std::endl;
+		ui.set_attempts(std::atoi(shm_addr));
+		ui.decrement_attempts();
+		std::cout << "(" << ui.get_attempts() << " attempts left)" << std::endl;
+
+		// liberating server 
+		_log("server", "[sem_post(sem_server)]");
+		sem_post(sem_server);
+
 	} while(ui.get_attempts());
+
+	sem_close(sem_server);
+	sem_close(sem_client);
 }

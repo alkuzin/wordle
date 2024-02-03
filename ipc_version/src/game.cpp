@@ -14,7 +14,7 @@ Game::Game(void)
 	_set_hidden_words();
 }
 
-void Game::process_input(const char *input, bool *letters, char *result, u32 size)
+void Game::process_input(char *input, bool *letters, char *result, u32 size)
 {
 	std::string res;
 	u32 counter;
@@ -22,6 +22,10 @@ void Game::process_input(const char *input, bool *letters, char *result, u32 siz
 
 	i = 0;
 	counter = 0;
+	
+	res += "\"";
+	res += input;
+	res += "\" - ";
 	while(input[i]) {
 		letters[i] = hidden_word[i] == input[i];
 		if(letters[i]) {
