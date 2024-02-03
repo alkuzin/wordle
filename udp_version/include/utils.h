@@ -10,14 +10,12 @@
 #include <iostream>
 #include <cstdarg>
 #include <cstdlib>
-#include <ctime>
 
 typedef unsigned long   u64;
 typedef unsigned int    u32;
 typedef unsigned short  u16;
 typedef unsigned char   u8;
 
-#define DATE_SIZE 32
 #define UTOA_SIZE 12
 
 enum exception {
