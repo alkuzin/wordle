@@ -33,7 +33,7 @@ class Game
 	public:
 		Game(void);
 		
-		void process_input(const char *input, bool *letters, char *result, u32 size);
+		void process_input(char *input, bool *letters, char *result, u32 size);
 		void set_wordlist_path(const char *wordlist_path);
 		bool is_guessed(const bool *letters);
 		void update_hidden_word(void);

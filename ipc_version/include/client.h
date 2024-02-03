@@ -22,10 +22,14 @@ class Client
 {
 	char   client_name[CLIENT_NAME_SIZE];
 	UI     ui;
+	
+	sem_t *sem_server;
+	sem_t *sem_client;
+	
 	char *shm_addr;
 
 	public:
-		Client(char *addr);
+		Client(char *addr, sem_t *sem_s, sem_t *sem_c);
 		
 		void init(void);
 	

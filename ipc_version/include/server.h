@@ -15,12 +15,14 @@
 
 class Server 
 {
+	sem_t *sem_server;
+	sem_t *sem_client;
 	char *shm_addr;
 	Game game;
 
 	public:
-		Server(char *addr);
-		
+		Server(char *addr, sem_t *sem_s, sem_t *sem_c);
+
 		void init(void);
 		void send(char *message);
 
