@@ -34,10 +34,6 @@ int main(void)
 			case WORDLIST_FILE_OPEN_EXCEPTION:
 				std::cerr << "failed to open wordlist file" << std::endl;
 				break;
-			
-			case MEMORY_ALLOCATION_EXCEPTION:
-				std::cerr << "memory allocation error" << std::endl;
-				break;
 
 			default:
 				std::cerr << "some exception occurred" << std::endl;

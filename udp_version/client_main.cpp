@@ -46,10 +46,6 @@ int main(int argc, char **argv)
 			case SOCKET_CREATION_EXCEPTION:
 				std::cerr << "socket creation failed" << std::endl;
 				break;
-			
-			case MEMORY_ALLOCATION_EXCEPTION:
-				std::cerr << "memory allocation error" << std::endl;
-				break;
 
 			default:
 				std::cerr << "some exception occurred" << std::endl;
