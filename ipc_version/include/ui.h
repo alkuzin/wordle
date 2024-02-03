@@ -15,8 +15,6 @@ class UI : public Game
 		UI(void);
 		
 		void display_banner(void);
-		void display_result(const bool *letters);
-		void display_word(const char* word, const bool *letters);
 };
 
 #endif // UI_H
