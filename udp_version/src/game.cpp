@@ -11,6 +11,7 @@ Game::Game(void)
 	std::strncpy(wordlist_path, DEFAULT_WORDLIST_PATH, WORDLIST_PATH_LENGTH);
 	attempts = ATTEMPTS_LIMIT;
 	set_attempts(ATTEMPTS_LIMIT);
+
 	_set_hidden_words();
 }
 
@@ -54,13 +55,10 @@ void Game::_set_hidden_words(void)
 
 	wordlist_file.open(wordlist_path, std::ios::in);
 	
-	if(!wordlist_file.is_open()) {
-		std::cerr << "CANNOT OPEN WORDLIST FILE: " << wordlist_path << std::endl;
-		exit(1);
-		//throw WORDLIST_FILE_OPEN_EXCEPTION;
-	}
+	if(!wordlist_file.is_open())
+		throw WORDLIST_FILE_OPEN_EXCEPTION;
 
-	while (std::getline(wordlist_file, word))
+	while(std::getline(wordlist_file, word))
 		hidden_words.push_back(word);	
 	
 	wordlist_file.close();	
