@@ -19,7 +19,15 @@
 #define WORDLIST_LENGTH        50 
 #define ATTEMPTS_LIMIT         5
 #define WORD_LENGTH            5 
+#define GAME_RESULT_SIZE       95
 
+#define WIN_MESSAGE "-----------------------------\n"       \
+				    "|      Word was guessed     |\n"       \
+				    "-----------------------------\n\n\n\n"
+
+#define LOSE_MESSAGE "-----------------------------\n"       \
+	    			 "|      Word wasn't guessed   |\n"       \
+					 "-----------------------------\n\n\n\n"
 class Game 
 {
 	private:
