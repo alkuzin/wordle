@@ -6,30 +6,11 @@
 
 #include "include/client.h"
 
-int main(int argc, char **argv) 
+int main(void) 
 {
 	try {
-
-		if(argc > 3) {
-			std::cerr << "client: too many arguments" << std::endl;
-			exit(EXIT_FAILURE);
-		}
-
-		if(argc == 3) {
-			char ip_addr[INET_ADDRSTRLEN];
-			u16  port;	
-
-			std::memset(ip_addr, 0, sizeof(ip_addr));
-			std::strncpy(ip_addr, argv[1], INET_ADDRSTRLEN);
-			port = atoi(argv[2]);
-
-			Client client(ip_addr, port);
-			client.init();
-		}
-		else {
-			Client client;
-			client.init();
-		}
+		Client client;
+		client.init();
 	}
 	catch(exception e) 
 	{
