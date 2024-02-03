@@ -24,26 +24,6 @@ void Client::_set_client_name(void)
     	std::strncpy(client_name, DEFAULT_CLIENT_NAME, sizeof(client_name));
 }
 
-Client::Client(const char *ip_addr, u16 port)
-{
-	// validate IP address
-	struct sockaddr_in addr;
-	
-	if((inet_pton(AF_INET, ip_addr, &(addr.sin_addr)) == 0))
-		throw INVALID_IP_ADDRESS_EXCEPTION;
-
-	// validate port
-	if(port <= 1024)
-		throw FORBIDDEN_PORT_EXCEPTION;
-
-	std::memset(&server_addr, 0, sizeof(server_addr));
-	server_addr.sin_family      = AF_INET;
-	server_addr.sin_port        = port;
-	server_addr.sin_addr.s_addr = inet_addr(ip_addr);
-	
-	_set_client_name();
-}
-
 Client::~Client(void) {
 	close(sockfd);
 }

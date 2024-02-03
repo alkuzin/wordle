@@ -34,7 +34,6 @@ class Client
 
 	public:
 		Client();
-		Client(const char *ip_addr, u16 port);
 		~Client();
 		
 		void init(void);
