@@ -14,20 +14,34 @@ Game::Game(void)
 	_set_hidden_words();
 }
 
-void Game::process_input(const char *input, bool *letters)
+void Game::process_input(const char *input, bool *letters, char *result, u32 size)
 {
+	std::string res;
+	u32 counter;
 	u32 i;
 
 	i = 0;
+	counter = 0;
 	while(input[i]) {
-		letters[i] = (hidden_word[i] == input[i]);	
+		letters[i] = hidden_word[i] == input[i];
+		if(letters[i]) {
+			res += " " + std::to_string(i + 1);
+			
+			if(i < WORD_LENGTH - 1)
+				res += ",";
+			
+			counter++;
+		}
 		i++;
 	}
-	
-	while(i < WORD_LENGTH) {
-		letters[i] = false;	
-		i++;
-	}
+
+	if(!counter)
+		res += "there isn't any correct letters";
+	else
+		res += " letters are correct";
+
+	std::strncat(result, res.c_str(), size);
+	result[res.size()] = '\0';
 }
 
 void Game::set_wordlist_path(const char *wordlist_path)
@@ -54,11 +68,8 @@ void Game::_set_hidden_words(void)
 
 	wordlist_file.open(wordlist_path, std::ios::in);
 	
-	if(!wordlist_file.is_open()) {
-		std::cerr << "CANNOT OPEN WORDLIST FILE: " << wordlist_path << std::endl;
-		exit(1);
-		//throw WORDLIST_FILE_OPEN_EXCEPTION;
-	}
+	if(!wordlist_file.is_open())
+		throw WORDLIST_FILE_OPEN_EXCEPTION;
 
 	while (std::getline(wordlist_file, word))
 		hidden_words.push_back(word);	

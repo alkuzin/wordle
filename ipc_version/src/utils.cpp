@@ -46,39 +46,3 @@ void _getinput(char *input, u32 size)
         }
     }
 }
-
-void _display_bytes(const char *bytes, u32 size)
-{
-	putchar('{');
-	for(u32 i = 0; i < size; i++) {
-    	printf(" %d", bytes[i]);
-        	if(i < (size - 1))
-         		putchar(',');
-	}
-	putchar(' ');
-    putchar('}');
-    putchar('\n');
-}
-
-void _convert_to_bytes(const bool *bool_arr, char *buffer, u32 size)
-{
-	u32 i;
-
-	i = 0;
-	while(i < size) {
-		buffer[i] = (u8)bool_arr[i];
-		i++;
-	}
-	buffer[size] = '\0';
-}
-
-void _convert_to_bool(const char *byte_arr, bool *buffer, u32 size)
-{
-	u32 i;
-
-	i = 0;
-	while(i < size) {
-		buffer[i] = (bool)byte_arr[i];
-		i++;
-	}
-}
