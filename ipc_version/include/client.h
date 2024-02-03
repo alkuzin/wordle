@@ -20,14 +20,12 @@
 
 class Client 
 {
-	char   client_name[CLIENT_NAME_SIZE];
-	UI     ui;
-	
+	char  client_name[CLIENT_NAME_SIZE];
 	sem_t *sem_server;
 	sem_t *sem_client;
+	char  *shm_addr;
+	UI    ui;
 	
-	char *shm_addr;
-
 	public:
 		Client(char *addr, sem_t *sem_s, sem_t *sem_c);
 		
