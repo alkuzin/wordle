@@ -24,7 +24,7 @@ class Server
 		Server(char *addr, sem_t *sem_s, sem_t *sem_c);
 
 		void init(void);
-		void send(char *message);
+		void send(const char *message);
 
 	private:
 		void _handle_client(void);
