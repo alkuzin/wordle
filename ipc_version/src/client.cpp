@@ -23,54 +23,61 @@ void Client::_set_client_name(void)
     	std::strncpy(client_name, DEFAULT_CLIENT_NAME, sizeof(client_name));
 }
 
-void Client::init(void) {
+void Client::init(void) 
+{
 	_handle_server();
+	sem_close(sem_server);
+	sem_close(sem_client);
 }
 
 void Client::_handle_server(void)
 {
-	//system("clear");
+	system("clear");
 	ui.display_banner();
+	ui.set_attempts(ATTEMPTS_LIMIT);
+
+	char word[WORD_LENGTH + 1];
 
 	do {
-		
 		std::cout << "<" << client_name << ">: ";
 		
 		// sending word
-		std::cin.getline(shm_addr, SHARED_MEMORY_BLOCK_SIZE);
-		_logf("client", "sent message: (%s)\n", shm_addr);
+		_getinput(word, WORD_LENGTH + 1);
+		std::strncpy(shm_addr, word, WORD_LENGTH + 1);
 		
 		// liberating server 
-		_log("client", "[sem_post(sem_server)]");
 		sem_post(sem_server);
-		
 		// waiting for server
-		_log("client", "[sem_wait(sem_client)]");
 		sem_wait(sem_client);
 		
 		// receiving bytes array
-		std::cout << shm_addr << std::endl;
+		if(std::strncmp(shm_addr, "WIN", 3) == 0) {
+			std::cout << WIN_MESSAGE << std::endl;
+			break;
+		}
+		
+		if(std::strncmp(shm_addr, "LOSE", 4) == 0) {
+			std::cout << LOSE_MESSAGE << std::endl;
+			break;
+		}
+
+		std::cout << "\n" << shm_addr;
 		
 		// liberating server 
-		_log("client", "[sem_post(sem_server)]");
 		sem_post(sem_server);
-		
 		// waiting for server
-		_log("client", "[sem_wait(sem_client)]");
 		sem_wait(sem_client);
 		
 		//receiving number of attempts left
-		std::cout << shm_addr << std::endl;
 		ui.set_attempts(std::atoi(shm_addr));
 		ui.decrement_attempts();
-		std::cout << "(" << ui.get_attempts() << " attempts left)" << std::endl;
+		std::cout << " (" << ui.get_attempts() << " attempts left)\n" << std::endl;
 
 		// liberating server 
-		_log("server", "[sem_post(sem_server)]");
 		sem_post(sem_server);
 
 	} while(ui.get_attempts());
-
-	sem_close(sem_server);
-	sem_close(sem_client);
+	
+	// liberating server 
+	sem_post(sem_server);
 }
