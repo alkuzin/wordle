@@ -1,19 +1,19 @@
 /*
- * server.cpp
+ * ipc_server.cpp
  * @alkuzin - 2024
  *
  */
 
-#include "../include/server.h"
+#include "../include/ipc_server.h"
 
-Server::Server(char *addr, sem_t *sem_s, sem_t *sem_c)
+IPC_Server::IPC_Server(char *addr, sem_t *sem_s, sem_t *sem_c)
 {
 	shm_addr = addr;
 	sem_server = sem_s;
 	sem_client = sem_c;
 }
 
-void Server::init(void)
+void IPC_Server::init(void)
 {
 	while(true) {
 		_log("server", "--- handle client ---");	
@@ -24,16 +24,30 @@ void Server::init(void)
 	sem_close(sem_server);
 }
 
-void Server::send(const char *message) {
-	std::memcpy(shm_addr, message, SHARED_MEMORY_BLOCK_SIZE);
+void IPC_Server::_shutdown(void) {
+	sem_close(sem_server);
+	sem_close(sem_client);
 }
 
-void Server::_handle_client(void)
+IPC_Server::~IPC_Server(void) {
+	_shutdown();
+}
+
+void IPC_Server::send(char *message, size_t size) {
+	std::memcpy(shm_addr, message, size);
+}
+
+void IPC_Server::recv(char *message, size_t size) {
+	std::memcpy(message, shm_addr, size);
+}
+
+void IPC_Server::_handle_client(void)
 {
 	char result[SHARED_MEMORY_BLOCK_SIZE];
 	char hidden_word[WORD_LENGTH + 1];
 	bool letters[WORD_LENGTH];
 	char attempts_buffer[UTOA_SIZE];
+	char buffer[WORD_LENGTH + 1];
 	u32  attempts;
 
 	// set hidden word
@@ -63,25 +77,26 @@ void Server::_handle_client(void)
 		}
 
 		// receiving & processing word 
+		recv(buffer, WORD_LENGTH + 1);
 		std::cout << std::endl;
-		_logf("server", "client send message: (%s)\n", shm_addr);
+		_logf("server", "client send message: (%s)\n", buffer);
 		
-		game.process_input(shm_addr, letters, result, SHARED_MEMORY_BLOCK_SIZE);
+		game.process_input(buffer, letters, result, SHARED_MEMORY_BLOCK_SIZE);
 		
 		if(game.is_guessed(letters)) {
 			_log("server", "client win the game");	
-			send("WIN");
+			send((char *)"WIN", 4);
 			break;
 		}
 		
 		if((attempts == 1) && !game.is_guessed(letters)) {
 			_log("server", "client lose the game");	
-			send("LOSE");
+			send((char *)"LOSE", 5);
 			break;
 		}
 
 		_logf("server", "processing result: (%s)\n", result);	
-		send(result);
+		send(result, SHARED_MEMORY_BLOCK_SIZE);
 		
 		// liberate client
 		_log("server", "sem_post(sem_client)");
@@ -93,7 +108,7 @@ void Server::_handle_client(void)
 	
 		// sending the number of attempts left
 		snprintf(attempts_buffer, UTOA_SIZE, "%u", attempts);
-		std::strncpy(shm_addr, attempts_buffer, UTOA_SIZE);	
+		send(attempts_buffer, UTOA_SIZE);
 
 		game.decrement_attempts();
 		_logf("server", "(attempts left: %u)\n", game.get_attempts());

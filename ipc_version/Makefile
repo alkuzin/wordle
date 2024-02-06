@@ -1,7 +1,7 @@
 CC=g++
 CFLAGS = -Wall -Wextra -Werror -g -lrt
 
-SRC  = server client utils game ui
+SRC  = ipc_server ipc_client utils game ui
 SRCS = $(addsuffix .cpp, $(SRC))
 OBJS = $(addsuffix .o,   $(SRC))
 SRCS_PREFIXED = $(addprefix src/, $(SRCS))

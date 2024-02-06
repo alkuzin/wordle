@@ -1,12 +1,12 @@
 /*
- * client.cpp
+ * ipc_client.cpp
  * @alkuzin - 2024
  *
  */
 
-#include "../include/client.h"
+#include "../include/ipc_client.h"
 
-Client::Client(char *addr, sem_t *sem_s, sem_t *sem_c)
+IPC_Client::IPC_Client(char *addr, sem_t *sem_s, sem_t *sem_c)
 {
 	shm_addr = addr;	
 	sem_server = sem_s;
@@ -15,7 +15,7 @@ Client::Client(char *addr, sem_t *sem_s, sem_t *sem_c)
 	_set_client_name();
 }
 
-void Client::_set_client_name(void)
+void IPC_Client::_set_client_name(void)
 {
 	std::memset(client_name, 0, sizeof(client_name));
 	
@@ -23,27 +23,45 @@ void Client::_set_client_name(void)
     	std::strncpy(client_name, DEFAULT_CLIENT_NAME, sizeof(client_name));
 }
 
-void Client::init(void) 
+void IPC_Client::init(void) 
 {
 	_handle_server();
 	sem_close(sem_server);
 	sem_close(sem_client);
 }
 
-void Client::_handle_server(void)
+void IPC_Client::_shutdown(void) {
+	sem_close(sem_server);
+	sem_close(sem_client);
+}
+
+IPC_Client::~IPC_Client(void) {
+	_shutdown();
+}
+
+void IPC_Client::recv(char *message, size_t size) {
+	std::strncpy(message, shm_addr, size);
+}
+
+void IPC_Client::send(char *message, size_t size) {
+	std::strncpy(shm_addr, message, size);
+}
+
+void IPC_Client::_handle_server(void)
 {
 	system("clear");
 	ui.display_banner();
 	ui.set_attempts(ATTEMPTS_LIMIT);
 
 	char word[WORD_LENGTH + 1];
+	char buffer[SHARED_MEMORY_BLOCK_SIZE];
 
 	do {
 		std::cout << "<" << client_name << ">: ";
 		
 		// sending word
 		_getinput(word, WORD_LENGTH + 1);
-		std::strncpy(shm_addr, word, WORD_LENGTH + 1);
+		send(word, WORD_LENGTH + 1);
 		
 		// liberating server 
 		sem_post(sem_server);
@@ -51,17 +69,20 @@ void Client::_handle_server(void)
 		sem_wait(sem_client);
 		
 		// receiving bytes array
-		if(std::strncmp(shm_addr, "WIN", 3) == 0) {
+		recv(buffer, SHARED_MEMORY_BLOCK_SIZE);
+		buffer[SHARED_MEMORY_BLOCK_SIZE] = '\0';
+
+		if(std::strncmp(buffer, "WIN", 3) == 0) {
 			std::cout << WIN_MESSAGE << std::endl;
 			break;
 		}
 		
-		if(std::strncmp(shm_addr, "LOSE", 4) == 0) {
+		if(std::strncmp(buffer, "LOSE", 4) == 0) {
 			std::cout << LOSE_MESSAGE << std::endl;
 			break;
 		}
 
-		std::cout << shm_addr;
+		std::cout << buffer;
 		
 		// liberating server 
 		sem_post(sem_server);

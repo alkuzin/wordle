@@ -1,5 +1,5 @@
 /*
- * client.h
+ * udp_client.h - UDP version of client
  * @alkuzin - 2024
  *
  */
