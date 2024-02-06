@@ -4,7 +4,7 @@
  *
  */
 
-#include "include/server.h"
+#include "include/ipc_server.h"
 
 int main(void) 
 {
@@ -16,10 +16,10 @@ int main(void)
 		
 	key = ftok(SHARED_MEMORY_BLOCK_NAME, SHARED_MEMORY_BLOCK_SIZE);
  
-   	// shmget returns an identifier in shmid
+   	// returns an identifier in shmid
    	shmid = shmget(key, SHARED_MEMORY_BLOCK_SIZE, 0666 | IPC_CREAT);
  
-   	// shmat to attach to shared memory
+   	// attach to shared memory
    	block = (char *)shmat(shmid, NULL, 0);
 	_logf("server", "set shared memory block: <%p>\n", block);
 
@@ -41,8 +41,8 @@ int main(void)
 	}
 	_log("server", "sem_client opened");
 		
-	Server server(block, sem_server, sem_client);
-	server.init();
+	IPC_Server ipc_server(block, sem_server, sem_client);
+	ipc_server.init();
  
     // detach from shared memory
     shmdt(block);
