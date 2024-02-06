@@ -37,6 +37,7 @@ class Client
 		~Client();
 		
 		void init(void);
+		int get_socket(void);
 	
 	private:
 		void _set_client_name(void);
