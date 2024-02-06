@@ -1,5 +1,5 @@
 /*
- * client.cpp
+ * udp_client.cpp
  * @alkuzin - 2024
  *
  */
