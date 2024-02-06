@@ -8,26 +8,17 @@
 #define SERVER_H
 
 #include <iostream>
-#include <cstring>
-#include <unistd.h>
-#include "utils.h"
-#include "game.h"
 
 class Server 
 {
-	sem_t *sem_server;
-	sem_t *sem_client;
-	char *shm_addr;
-	Game game;
-
 	public:
-		Server(char *addr, sem_t *sem_s, sem_t *sem_c);
-
-		void init(void);
-		void send(const char *message);
-
-	private:
-		void _handle_client(void);
+		virtual ~Server() = default;
+		void virtual init(void) = 0;
+		void virtual recv(char *message, size_t size) = 0;
+		void virtual send(char *message, size_t size) = 0;
+	
+	protected:
+		void virtual _shutdown(void) = 0;
 };
 
 #endif // SERVER_H
