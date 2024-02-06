@@ -5,11 +5,16 @@
  */
 
 #include "include/client.h"
+#include <signal.h>
+
+void sigint_handler(int signal);
+
+Client client;
 
 int main(void) 
 {
 	try {
-		Client client;
+		signal(SIGINT, sigint_handler);
 		client.init();
 	}
 	catch(exception e) 
@@ -34,4 +39,11 @@ int main(void)
 		};
 	}
 	return 0;
+}
+
+void sigint_handler(int signal) {
+	std::cout << std::endl;
+	_logf("client", "received signal %d, exiting\n", signal);
+	close(client.get_socket());
+	exit(EXIT_SUCCESS);
 }
