@@ -61,7 +61,7 @@ void Client::_handle_server(void)
 			break;
 		}
 
-		std::cout << "\n" << shm_addr;
+		std::cout << shm_addr;
 		
 		// liberating server 
 		sem_post(sem_server);
