@@ -7,41 +7,18 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
 #include <iostream>
-#include <cstring>
-
-#include "client.h"
-#include "utils.h"
-#include "game.h"
-
-#define CLIENT_INVITATION    "#####"
-#define DEFAULT_PORT       	 12345 
 
 class Server 
 {
-	struct sockaddr_in server_addr;
-	struct sockaddr_in client_addr;
-	int  sockfd;
-	Game game;
-
 	public:
-		Server();
-		~Server();
-		
-		void init(void);
-		int get_socket(void);
+		virtual ~Server() = default;
+		void virtual init(void) = 0;
+		void virtual recv(char *message, size_t size) = 0;
+		void virtual send(char *message, size_t size) = 0;
 	
-	private:
-		void _bind(void);
-		void _handle_client(void);
-		void _show_server_info(void);
-		void _show_client_info(void);
-		void _get_client_ip(char *buffer);
+	protected:
+		void virtual _shutdown(void) = 0;
 };
 
 #endif // SERVER_H
