@@ -1,12 +1,12 @@
 /*
- * server.cpp
+ * udp_server.cpp
  * @alkuzin - 2024
  *
  */
 
-#include "../include/server.h"
+#include "../include/udp_server.h"
 
-Server::Server(void)
+UDP_Server::UDP_Server(void) : Server()
 {
 	std::memset(&server_addr, 0, sizeof(server_addr));
 	std::memset(&client_addr, 0, sizeof(client_addr));
@@ -15,17 +15,29 @@ Server::Server(void)
 	server_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 }
 
-Server::~Server(void) 
+void UDP_Server::_shutdown(void)
 {
 	close(sockfd);	
 	_log("server", "shutdown");
 }
 
-int Server::get_socket(void) {
+UDP_Server::~UDP_Server(void) {
+	_shutdown();
+}
+
+int UDP_Server::get_socket(void) {
 	return sockfd;
 }
 
-void Server::_show_server_info(void) 
+void UDP_Server::_bind(void) 
+{
+	if((bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr))) < 0)
+		throw BIND_EXCEPTION;	
+
+	_log("server", "bind successfull");
+}
+
+void UDP_Server::_show_server_info(void) 
 {
 	// Display server ip address and port
 	char ip_addr[INET_ADDRSTRLEN];
@@ -35,7 +47,7 @@ void Server::_show_server_info(void)
 	_logf("server", "ip: %s port: %u\n", ip_addr, server_addr.sin_port);
 }
 
-void Server::init(void)
+void UDP_Server::init(void)
 {
 	if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
 		throw SOCKET_CREATION_EXCEPTION;	
@@ -52,15 +64,7 @@ void Server::init(void)
 	}
 }
 
-void Server::_bind(void) 
-{
-	if((bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr))) < 0)
-		throw BIND_EXCEPTION;	
-
-	_log("server", "bind successfull");
-}
-
-void Server::_show_client_info(void)
+void UDP_Server::_show_client_info(void)
 {
 	char ip_addr[INET_ADDRSTRLEN];
 	
@@ -70,22 +74,36 @@ void Server::_show_client_info(void)
 	client_addr.sin_port);
 }
 
-void Server::_get_client_ip(char *buffer) {
+void UDP_Server::_get_client_ip(char *buffer) {
 	inet_ntop(AF_INET, &(client_addr.sin_addr.s_addr), buffer, INET_ADDRSTRLEN);
 }
 
-void Server::_handle_client(void)
+void UDP_Server::recv(char *message, size_t size) 
+{	
+	u32  client_addr_len;
+	int received_bytes;
+
+	received_bytes = recvfrom(sockfd, message, size, MSG_WAITALL,
+	(struct sockaddr *)&client_addr, &client_addr_len);
+	_logf("server", "received %d bytes from client\n", received_bytes);	
+}
+
+void UDP_Server::send(char *message, size_t size) 
+{	
+	int sent_bytes;
+		
+	sent_bytes = sendto(sockfd, message, size, MSG_CONFIRM,
+	(struct sockaddr *)&client_addr, sizeof(client_addr));
+	_logf("server", "sent %d bytes to client\n", sent_bytes);	
+}
+
+void UDP_Server::_handle_client(void)
 {
 	char attempts_bytes[UTOA_SIZE];
 	char hidden_word[WORD_LENGTH + 1];
-	char client_ip[INET_ADDRSTRLEN];
 	char message[WORD_LENGTH + 1];
 	char bytes[WORD_LENGTH + 1];
 	bool letters[WORD_LENGTH];
-	int  sent_attempts_bytes;
-	int  sent_array_bytes;
-	int  received_bytes;
-	u32  client_addr_len;
 	u32  attempts;
 
 	// set hidden word
@@ -107,21 +125,10 @@ void Server::_handle_client(void)
 		attempts = game.get_attempts();
 		_utoa(attempts, attempts_bytes);
 		
-		received_bytes = recvfrom(sockfd, message, sizeof(message),
-		MSG_WAITALL, (struct sockaddr *)&client_addr, &client_addr_len);
+		recv(message, sizeof(message));
 		message[WORD_LENGTH] = '\0';
 
-		_get_client_ip(client_ip);
-
-		// skip client invitation word
-		if(std::strncmp(message, CLIENT_INVITATION, WORD_LENGTH + 1) == 0) {
-			_logf("server", "recived client invitation: \"%s\"\n", message);	
-			continue;
-		}
-
 		_show_client_info();
-
-		_logf("server", "received %d bytes from client\n", received_bytes);	
 		_logf("server", "client send message: (%s)\n", message);
 		
 		game.process_input(message, letters);
@@ -131,15 +138,10 @@ void Server::_handle_client(void)
 
 		// display bool array of guesssed letters
 		_display_bytes(bytes, WORD_LENGTH);	
+		send(bytes, sizeof(bytes));
 
-		sent_array_bytes = sendto(sockfd, bytes, sizeof(bytes), MSG_CONFIRM,
-		(struct sockaddr *)&client_addr, sizeof(client_addr));
-		_logf("server", "sent %d bytes of letters to client\n", sent_array_bytes);	
-	
 		_logf("server", "sending the number of attempts left to client: (%s)\n", attempts_bytes);
-		sent_attempts_bytes = sendto(sockfd, attempts_bytes, sizeof(attempts_bytes), MSG_CONFIRM,
-		(struct sockaddr *)&client_addr, sizeof(client_addr));
-		_logf("server", "sent %d bytes of attempts to client\n", sent_attempts_bytes);	
+		send(attempts_bytes, sizeof(attempts_bytes));
 		
 		if(game.is_guessed(letters))
 			break;

@@ -4,9 +4,9 @@
  *
  */
 
-#include "../include/client.h"
+#include "../include/udp_client.h"
 
-Client::Client(void)
+UDP_Client::UDP_Client(void)
 {
 	std::memset(&server_addr, 0, sizeof(server_addr));
 	server_addr.sin_family      = AF_INET;
@@ -16,7 +16,15 @@ Client::Client(void)
 	_set_client_name();
 }
 
-void Client::_set_client_name(void)
+void UDP_Client::_shutdown(void) {
+	close(sockfd);	
+}
+
+UDP_Client::~UDP_Client(void) {
+	_shutdown();
+}
+
+void UDP_Client::_set_client_name(void)
 {
 	std::memset(client_name, 0, sizeof(client_name));
 	
@@ -24,15 +32,11 @@ void Client::_set_client_name(void)
     	std::strncpy(client_name, DEFAULT_CLIENT_NAME, sizeof(client_name));
 }
 
-int Client::get_socket(void) {
+int UDP_Client::get_socket(void) {
 	return sockfd;
 }
 
-Client::~Client(void) {
-	close(sockfd);
-}
-
-void Client::init(void)
+void UDP_Client::init(void)
 {
 	if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
 		throw SOCKET_CREATION_EXCEPTION;
@@ -40,22 +44,29 @@ void Client::init(void)
 	_handle_server();
 }
 
-void Client::_handle_server(void)
+void UDP_Client::recv(char *message, size_t size) 
+{	
+	u32  server_addr_len;
+
+	recvfrom(sockfd, message, size, MSG_WAITALL,
+	(struct sockaddr *)&server_addr, &server_addr_len);
+}
+
+void UDP_Client::send(char *message, size_t size) 
+{	
+	sendto(sockfd, message, size, MSG_CONFIRM,
+	(struct sockaddr *)&server_addr, sizeof(server_addr));
+}
+
+void UDP_Client::_handle_server(void)
 {
 	char attempts_bytes[ATTEMPTS_BYTES_SIZE];
 	char message[WORD_LENGTH + 1];
 	bool letters[WORD_LENGTH];
 	char bytes[WORD_LENGTH + 1];
-	u32  server_addr_len;
 		
 	system("clear");
 	ui.display_banner();
-
-	// send client invitation message 
-	std::memset(message, 0, sizeof(message));	
-	std::strncpy(message, CLIENT_INVITATION, WORD_LENGTH + 1);
-	sendto(sockfd, message, sizeof(message), MSG_CONFIRM,
-		  (struct sockaddr *)&server_addr, sizeof(server_addr));
 
 	do {
 		std::memset(attempts_bytes, 0, sizeof(attempts_bytes));
@@ -72,20 +83,21 @@ void Client::_handle_server(void)
 			continue;
 	
 		// sending word
-		sendto(sockfd, message, sizeof(message), MSG_CONFIRM,
-			  (struct sockaddr *)&server_addr, sizeof(server_addr));
-		
+		send(message, sizeof(message));
+
 		// receiving bytes array
-		recvfrom(sockfd, bytes, sizeof(bytes), MSG_WAITALL,
-		        (struct sockaddr *)&server_addr, &server_addr_len);
+		//recvfrom(sockfd,  bytes, sizeof(bytes),MSG_WAITALL,
+		//        (struct sockaddr *)&server_addr, &server_addr_len);
+		recv(bytes, sizeof(bytes));
 		bytes[WORD_LENGTH] = '\0';
 		
 		// converting bytes array to bool array
 		_convert_to_bool(bytes, letters, sizeof(letters));
 		
 		//receiving number of attempts left
-		recvfrom(sockfd, attempts_bytes, sizeof(attempts_bytes), MSG_WAITALL,
-		        (struct sockaddr *)&server_addr, &server_addr_len);
+		//recvfrom(sockfd, attempts_bytes, sizeof(attempts_bytes), MSG_WAITALL,
+		//        (struct sockaddr *)&server_addr, &server_addr_len);
+		recv(attempts_bytes, sizeof(attempts_bytes));
 		attempts_bytes[ATTEMPTS_BYTES_SIZE] = '\0';
 		
 		// update attempts

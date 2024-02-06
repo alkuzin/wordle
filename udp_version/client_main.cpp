@@ -4,18 +4,18 @@
  *
  */
 
-#include "include/client.h"
+#include "include/udp_client.h"
 #include <signal.h>
 
 void sigint_handler(int signal);
 
-Client client;
+UDP_Client udp_client;
 
 int main(void) 
 {
 	try {
 		signal(SIGINT, sigint_handler);
-		client.init();
+		udp_client.init();
 	}
 	catch(exception e) 
 	{
@@ -44,6 +44,6 @@ int main(void)
 void sigint_handler(int signal) {
 	std::cout << std::endl;
 	_logf("client", "received signal %d, exiting\n", signal);
-	close(client.get_socket());
+	close(udp_client.get_socket());
 	exit(EXIT_SUCCESS);
 }

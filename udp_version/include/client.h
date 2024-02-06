@@ -7,41 +7,18 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
 #include <iostream>
-#include <cstring>
-
-#include "utils.h"
-#include "ui.h"
-
-#define DEFAULT_CLIENT_NAME  "client"
-#define CLIENT_INVITATION    "#####"
-#define DEFAULT_PORT         12345
-#define CLIENT_NAME_SIZE     256
-#define ATTEMPTS_BYTES_SIZE  12
 
 class Client 
 {
-	struct sockaddr_in server_addr;
-	char   client_name[CLIENT_NAME_SIZE];
-	int    sockfd;	
-	UI     ui;
-
 	public:
-		Client();
-		~Client();
-		
-		void init(void);
-		int get_socket(void);
+		virtual ~Client() = default;
+		void virtual init(void) = 0;
+		void virtual recv(char *message, size_t size) = 0;
+		void virtual send(char *message, size_t size) = 0;
 	
-	private:
-		void _set_client_name(void);
-		void _show_server_info(void);
-		void _handle_server(void);
+	protected:
+		void virtual _shutdown(void) = 0;
 };
 
 #endif // CLIENT_H
