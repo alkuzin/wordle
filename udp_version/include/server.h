@@ -19,7 +19,6 @@
 #include "utils.h"
 #include "game.h"
 
-#define DEFAULT_IP_ADDRESS   "127.0.0.1"
 #define CLIENT_INVITATION    "#####"
 #define DEFAULT_PORT       	 12345 
 

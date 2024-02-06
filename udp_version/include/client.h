@@ -18,7 +18,6 @@
 #include "utils.h"
 #include "ui.h"
 
-#define DEFAULT_IP_ADDRESS   "127.0.0.1"
 #define DEFAULT_CLIENT_NAME  "client"
 #define CLIENT_INVITATION    "#####"
 #define DEFAULT_PORT         12345
