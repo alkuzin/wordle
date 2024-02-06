@@ -10,8 +10,9 @@ Client::Client(void)
 {
 	std::memset(&server_addr, 0, sizeof(server_addr));
 	server_addr.sin_family      = AF_INET;
-	server_addr.sin_port        = DEFAULT_PORT;
-	server_addr.sin_addr.s_addr = inet_addr(DEFAULT_IP_ADDRESS);
+	server_addr.sin_port        = htons(DEFAULT_PORT);
+	//server_addr.sin_addr.s_addr = inet_addr(DEFAULT_IP_ADDRESS);
+	server_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	
 	_set_client_name();
 }
@@ -22,6 +23,10 @@ void Client::_set_client_name(void)
 	
 	if (getlogin_r(client_name, sizeof(client_name)) != 0)
     	std::strncpy(client_name, DEFAULT_CLIENT_NAME, sizeof(client_name));
+}
+
+int Client::get_socket(void) {
+	return sockfd;
 }
 
 Client::~Client(void) {
@@ -71,6 +76,9 @@ void Client::_handle_server(void)
 		sendto(sockfd, message, sizeof(message), MSG_CONFIRM,
 			  (struct sockaddr *)&server_addr, sizeof(server_addr));
 		
+		std::cout << "server_addr.sin_family:       " << server_addr.sin_family << std::endl;
+		std::cout << "server_addr.sin_port:         " << server_addr.sin_port << std::endl;
+		std::cout << "server_addr.sin_addr.s_addr:  " << server_addr.sin_addr.s_addr << std::endl;
 		// receiving bytes array
 		recvfrom(sockfd, bytes, sizeof(bytes), MSG_WAITALL,
 		        (struct sockaddr *)&server_addr, &server_addr_len);

@@ -8,15 +8,22 @@
 
 Server::Server(void)
 {
+	std::memset(&server_addr, 0, sizeof(server_addr));
+	std::memset(&client_addr, 0, sizeof(client_addr));
 	server_addr.sin_family      = AF_INET;
-	server_addr.sin_port        = DEFAULT_PORT;
-	server_addr.sin_addr.s_addr = inet_addr(DEFAULT_IP_ADDRESS);
+	server_addr.sin_port        = htons(DEFAULT_PORT);
+	//server_addr.sin_addr.s_addr = inet_addr(DEFAULT_IP_ADDRESS);
+	server_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 }
 
 Server::~Server(void) 
 {
 	close(sockfd);	
 	_log("server", "shutdown");
+}
+
+int Server::get_socket(void) {
+	return sockfd;
 }
 
 void Server::_show_server_info(void) 
@@ -96,7 +103,8 @@ void Server::_handle_client(void)
 		std::memset(bytes,   0, sizeof(bytes));
 		std::memset(message, 0, sizeof(message));
 		std::memset(letters, 0, sizeof(letters));
-		
+		std::memset(&client_addr, 0, sizeof(client_addr));
+
 		attempts = game.get_attempts();
 		_utoa(attempts, attempts_bytes);
 		
@@ -105,7 +113,28 @@ void Server::_handle_client(void)
 		message[WORD_LENGTH] = '\0';
 
 		_get_client_ip(client_ip);
-	
+
+		if(std::strncmp(client_ip, "0.0.0.0", 7) == 0 && client_addr.sin_port == 0) {       
+			_log("server", "received bad ip: 0.0.0.0:0 [RELOADING REQUIRED]");
+			_logf("server", "received bytes: %d\n", received_bytes);
+			//break;
+			//continue;
+        }
+
+		if(received_bytes == -1) {
+			perror("receiving bytes");	
+			//continue;
+		}
+
+		std::cout << "sockfd:          " << sockfd << std::endl;
+		std::cout << "message:         " << message << std::endl;
+		std::cout << "sizeof(message): " << sizeof(message) << std::endl;
+		std::cout << "MSG_WAITALL:     " << MSG_WAITALL << std::endl;
+		std::cout << "----------------------------" << std::endl;
+		std::cout << "client_addr.sin_family:       " << client_addr.sin_family << std::endl;
+		std::cout << "client_addr.sin_port:         " << client_addr.sin_port << std::endl;
+		std::cout << "client_addr.sin_addr.s_addr:  " << client_addr.sin_addr.s_addr << std::endl;
+
 		// skip client invitation word
 		if(std::strncmp(message, CLIENT_INVITATION, WORD_LENGTH + 1) == 0) {
 			_logf("server", "recived client invitation: \"%s\"\n", message);	
