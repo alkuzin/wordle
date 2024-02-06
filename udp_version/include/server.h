@@ -35,6 +35,7 @@ class Server
 		~Server();
 		
 		void init(void);
+		int get_socket(void);
 	
 	private:
 		void _bind(void);
