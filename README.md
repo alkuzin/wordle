@@ -16,15 +16,22 @@ First clone this repository:
 ```console
 git clone https://github.com/alkuzin/wordle.git
 ```
-Then move to *udp_version* or *ipc_version* directory and run:
+Before building the project you need to select interconnection mode *(default: UDP)*
+by editing __`client_main.cpp`__ and __`server_main.cpp`__ files:
+
 For UDP version:
-```console
-cd udp_version && make all
+```cpp
+enum transfer_mode mode = UDP;
 ```
 
 For IPC version:
+```cpp
+enum transfer_mode mode = IPC;
+```
+
+Then build project by running:
 ```console
-cd ipc_version && make all
+make all
 ```
 
 And run those commands in separate terminals:
