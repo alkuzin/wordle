@@ -86,8 +86,6 @@ void UDP_Client::_handle_server(void)
 		send(message, sizeof(message));
 
 		// receiving bytes array
-		//recvfrom(sockfd,  bytes, sizeof(bytes),MSG_WAITALL,
-		//        (struct sockaddr *)&server_addr, &server_addr_len);
 		recv(bytes, sizeof(bytes));
 		bytes[WORD_LENGTH] = '\0';
 		
@@ -95,8 +93,6 @@ void UDP_Client::_handle_server(void)
 		_convert_to_bool(bytes, letters, sizeof(letters));
 		
 		//receiving number of attempts left
-		//recvfrom(sockfd, attempts_bytes, sizeof(attempts_bytes), MSG_WAITALL,
-		//        (struct sockaddr *)&server_addr, &server_addr_len);
 		recv(attempts_bytes, sizeof(attempts_bytes));
 		attempts_bytes[ATTEMPTS_BYTES_SIZE] = '\0';
 		

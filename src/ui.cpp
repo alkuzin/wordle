@@ -25,16 +25,10 @@ void UI::display_banner(void)
 
 void UI::display_result(const bool *letters)
 {
-	if(is_guessed(letters)) {
-		std::cout << "-----------------------------" << std::endl;
-		std::cout << "|      Word was guessed     |" << std::endl;
-		std::cout << "-----------------------------\n\n\n" << std::endl;
-	}
-	else {
-		std::cout << "-----------------------------" << std::endl;
-		std::cout << "|     Word wasn't guessed   |" << std::endl;
-		std::cout << "-----------------------------\n\n\n" << std::endl;
-	}
+	if(is_guessed(letters))
+		std::cout << WIN_MESSAGE << std::endl;
+	else
+		std::cout << LOSE_MESSAGE << std::endl;
 }
 
 void UI::display_word(const char* word, const bool *letters)
