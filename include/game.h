@@ -12,6 +12,7 @@
 #include <string>
 #include <cstring>
 #include <vector>
+
 #include "utils.h"
 
 #define DEFAULT_WORDLIST_PATH  "wordlist.txt"
@@ -19,15 +20,14 @@
 #define WORDLIST_LENGTH        50 
 #define ATTEMPTS_LIMIT         5
 #define WORD_LENGTH            5 
-#define GAME_RESULT_SIZE       95
 
 #define WIN_MESSAGE "-----------------------------\n"       \
 				    "|      Word was guessed     |\n"       \
 				    "-----------------------------\n\n\n\n"
 
-#define LOSE_MESSAGE "-----------------------------\n"       \
+#define LOSE_MESSAGE "------------------------------\n"       \
 	    			 "|      Word wasn't guessed   |\n"       \
-					 "-----------------------------\n\n\n\n"
+				     "------------------------------\n\n\n\n"
 class Game 
 {
 	private:
@@ -42,6 +42,7 @@ class Game
 		Game(void);
 		
 		void process_input(char *input, bool *letters, char *result, u32 size);
+		void process_input(const char *input, bool *letters);
 		void set_wordlist_path(const char *wordlist_path);
 		bool is_guessed(const bool *letters);
 		void update_hidden_word(void);
