@@ -30,11 +30,105 @@ void Wordle_Server::init(void)
 	}
 }
 
+void Wordle_Server::_process(void)
+{
+	char attempts_bytes[UTOA_SIZE];
+	char hidden_word[WORD_LENGTH + 1];
+	char message[WORD_LENGTH + 1];
+	char bytes[WORD_LENGTH + 1];
+	bool letters[WORD_LENGTH];
+	u32  attempts;
+
+	// set hidden word
+	game.update_hidden_word();
+	std::memset(hidden_word, 0, sizeof(hidden_word));
+	std::strncpy(hidden_word, game.get_hidden_word(), WORD_LENGTH);
+	_logf("server", "set hidden word: (%s)\n", hidden_word);	
+
+	attempts = ATTEMPTS_LIMIT;
+	game.set_attempts(ATTEMPTS_LIMIT);
+	_logf("server", "set attempts limit: (%u)\n", attempts);	
+
+	do {
+		std::memset(attempts_bytes, 0, sizeof(attempts_bytes));
+		std::memset(message,        0, sizeof(message));
+		std::memset(letters,        0, sizeof(letters));
+		std::memset(bytes,          0, sizeof(bytes));
+
+		std::cout << std::endl;
+
+		server->begin();
+		attempts = game.get_attempts();
+		_utoa(attempts, attempts_bytes);
+		
+		server->recv(message, sizeof(message));
+		message[WORD_LENGTH] = '\0';
+
+		if(message[0] == '\0')
+			break;
+		
+		_logf("server", "client send message: (%s)\n", message);
+		game.process_input(message, letters);
+
+		_logf("server", "%s", "converting bool array to bytes: ");
+		_convert_to_bytes(letters, bytes, WORD_LENGTH);
+
+		// display bool array of guesssed letters
+		_display_bytes(bytes, WORD_LENGTH);	
+		std::cout << attempts_bytes << std::endl;
+		
+		server->send(bytes, sizeof(bytes));
+		
+		_logf("server", "sending the number of attempts left to client: (%s)\n", attempts_bytes);
+		game.decrement_attempts();
+		server->send(attempts_bytes, sizeof(attempts_bytes));
+		
+		#ifdef IPC_MODE
+			// liberate client
+			_log("server", "sem_post(sem_client)");
+			sem_post(sem_client);
+		
+			// waiting for client
+			_log("server", "sem_wait(sem_server)");
+			sem_wait(sem_server);
+		#endif
+		_logf("server", "(attempts left: %u)\n", game.get_attempts());
+		server->end();
+		
+		if(game.is_guessed(letters)) {
+			game.set_attempts(ATTEMPTS_LIMIT);
+			_log("server", "--- client finished game ---");
+			break;
+		}
+
+	} while(game.get_attempts());
+		
+	#ifdef IPC_MODE
+		// liberate client
+		_log("server", "sem_post(sem_client)");
+		sem_post(sem_client);
+		
+		// waiting for client
+		_log("server", "sem_wait(sem_server)");
+		sem_wait(sem_server);
+			
+		//liberate server
+		_log("server", "sem_post(sem_server)");
+		sem_post(sem_server);
+	#endif
+}
+
 void Wordle_Server::_init_udp(void) 
 {
 	try {
 		server = new UDP_Server();
 		server->init();
+		
+		while(true) {
+			_log("server", "--- handle client ---");	
+			_process();
+			std::cout << std::endl;
+		}
 	}
 	catch(exception e) 
 	{
@@ -103,6 +197,12 @@ void Wordle_Server::_init_ipc(void)
 		
 	server = new IPC_Server(block, sem_server, sem_client);
 	server->init();
+		
+	while(true) {
+		_log("server", "--- handle client ---");	
+		_process();
+		std::cout << std::endl;
+	}
  
     // detach from shared memory
     shmdt(block);
