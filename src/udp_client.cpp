@@ -12,8 +12,6 @@ UDP_Client::UDP_Client(void)
 	server_addr.sin_family      = AF_INET;
 	server_addr.sin_port        = htons(DEFAULT_PORT);
 	server_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	
-	_set_client_name();
 }
 
 void UDP_Client::_shutdown(void) {
@@ -24,12 +22,12 @@ UDP_Client::~UDP_Client(void) {
 	_shutdown();
 }
 
-void UDP_Client::_set_client_name(void)
-{
-	std::memset(client_name, 0, sizeof(client_name));
-	
-	if (getlogin_r(client_name, sizeof(client_name)) != 0)
-    	std::strncpy(client_name, DEFAULT_CLIENT_NAME, sizeof(client_name));
+void UDP_Client::begin(void) {
+	std::cout << "Try to guess word with " << WORD_LENGTH << " symbols" << std::endl;
+}
+
+void UDP_Client::end(void) {
+	std::cout << "Try again\n" << std::endl;
 }
 
 int UDP_Client::get_socket(void) {
@@ -40,8 +38,6 @@ void UDP_Client::init(void)
 {
 	if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
 		throw SOCKET_CREATION_EXCEPTION;
-
-	_handle_server();
 }
 
 void UDP_Client::recv(char *message, size_t size) 
@@ -58,6 +54,7 @@ void UDP_Client::send(char *message, size_t size)
 	(struct sockaddr *)&server_addr, sizeof(server_addr));
 }
 
+/*
 void UDP_Client::_handle_server(void)
 {
 	char attempts_bytes[ATTEMPTS_BYTES_SIZE];
@@ -109,4 +106,4 @@ void UDP_Client::_handle_server(void)
 	} while(ui.get_attempts());
 	
 	ui.display_result(letters);
-}
+}*/

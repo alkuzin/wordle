@@ -36,6 +36,8 @@ class UDP_Server : public Server
 		void init(void) override;
 		void recv(char *message, size_t size) override;
 		void send(char *message, size_t size) override;
+		void begin(void) override;
+		void end(void) override;
 	
 	protected:
 		void _shutdown(void) override;

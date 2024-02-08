@@ -13,15 +13,50 @@ IPC_Server::IPC_Server(char *addr, sem_t *sem_s, sem_t *sem_c)
 	sem_client = sem_c;
 }
 
-void IPC_Server::init(void)
+void IPC_Server::init(void) {
+	_log("server", "init server");
+}
+
+void IPC_Server::begin(void)
 {
-	while(true) {
-		_log("server", "--- handle client ---");	
-		_handle_client();
-		std::cout << std::endl;
+	std::memset(shm_addr, 0, SHARED_MEMORY_BLOCK_SIZE);
+	
+	// waiting for client
+	_log("server", "waiting for client");
+	_log("server", "sem_wait(sem_server)");
+	sem_wait(sem_server);
+	
+	if(!shm_addr[0]) {
+		sem_wait(sem_server);
 	}
-	sem_close(sem_client);
-	sem_close(sem_server);
+}
+
+void IPC_Server::end(void)
+{
+	// liberate client
+	_log("server", "sem_post(sem_client)");
+	sem_post(sem_client);
+	
+	// waiting for client
+	_log("server", "sem_wait(sem_server)");
+	sem_wait(sem_server);
+}
+
+void IPC_Server::send(char *message, size_t size) 
+{
+	std::memcpy(shm_addr, message, size);
+	
+	// liberate client
+	_log("server", "sem_post(sem_client)");
+	sem_post(sem_client);
+		
+	// waiting for client
+	_log("server", "sem_wait(sem_server)");
+	sem_wait(sem_server);
+}
+
+void IPC_Server::recv(char *message, size_t size) {
+	std::memcpy(message, shm_addr, size);
 }
 
 void IPC_Server::_shutdown(void) {
@@ -33,15 +68,8 @@ IPC_Server::~IPC_Server(void) {
 	_shutdown();
 }
 
-void IPC_Server::send(char *message, size_t size) {
-	std::memcpy(shm_addr, message, size);
-}
 
-void IPC_Server::recv(char *message, size_t size) {
-	std::memcpy(message, shm_addr, size);
-}
-
-void IPC_Server::_handle_client(void)
+/*void IPC_Server::_handle_client(void)
 {
 	char result[SHARED_MEMORY_BLOCK_SIZE];
 	char hidden_word[WORD_LENGTH + 1];
@@ -137,4 +165,4 @@ void IPC_Server::_handle_client(void)
 	
 	game.set_attempts(ATTEMPTS_LIMIT);
 	_log("server", "--- client finished game ---");
-}
+}*/

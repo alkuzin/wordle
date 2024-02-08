@@ -29,6 +29,16 @@ int UDP_Server::get_socket(void) {
 	return sockfd;
 }
 
+void UDP_Server::begin(void) 
+{
+	std::memset(&client_addr,   0, sizeof(client_addr));
+	_log("server", "begin");	
+}
+
+void UDP_Server::end(void) {
+	_log("server", "end");	
+}
+
 void UDP_Server::_bind(void) 
 {
 	if((bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr))) < 0)
@@ -56,12 +66,6 @@ void UDP_Server::init(void)
 
 	_show_server_info();
 	_bind();
-
-	while(true) {
-		_log("server", "--- handle client ---");	
-		_handle_client();
-		std::cout << std::endl;
-	}
 }
 
 void UDP_Server::_show_client_info(void)
