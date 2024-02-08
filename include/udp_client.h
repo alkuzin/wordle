@@ -18,14 +18,11 @@
 #include "utils.h"
 #include "ui.h"
 
-#define DEFAULT_CLIENT_NAME  "client"
 #define DEFAULT_PORT         12345
-#define CLIENT_NAME_SIZE     256
 #define ATTEMPTS_BYTES_SIZE  12
 
 class UDP_Client : public Client
 {
-	char   client_name[CLIENT_NAME_SIZE];
 	struct sockaddr_in server_addr;
 	int    sockfd;	
 	UI     ui;
@@ -37,15 +34,15 @@ class UDP_Client : public Client
 		void init(void) override;
 		void recv(char *message, size_t size) override;
 		void send(char *message, size_t size) override;
-		int get_socket(void);
+		int  get_socket(void);
+		void begin(void) override;
+		void end(void) override;
 	
 	protected:
 		void _shutdown(void) override;
 	
 	private:
-		void _set_client_name(void);
 		void _show_server_info(void);
-		void _handle_server(void);
 };
 
 #endif // UDP_CLIENT_H

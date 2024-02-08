@@ -36,13 +36,14 @@ class UDP_Server : public Server
 		void init(void) override;
 		void recv(char *message, size_t size) override;
 		void send(char *message, size_t size) override;
+		void begin(void) override;
+		void end(void) override;
 	
 	protected:
 		void _shutdown(void) override;
 	
 	private:
 		void _bind(void);
-		void _handle_client(void);
 		void _show_server_info(void);
 		void _show_client_info(void);
 		void _get_client_ip(char *buffer);

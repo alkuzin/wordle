@@ -9,7 +9,15 @@
 
 void sigint_handler(int signal);
 
-enum transfer_mode mode = UDP;
+#ifdef UDP_MODE
+	enum transfer_mode mode = UDP;
+#elif defined IPC_MODE
+	enum transfer_mode mode = IPC;
+#else
+	enum transfer_mode mode = IPC;
+#endif
+
+// IPC - default mode
 Wordle_Client wordle_client(mode);
 	
 int main(void) 

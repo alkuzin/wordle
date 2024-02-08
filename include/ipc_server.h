@@ -37,10 +37,12 @@ class IPC_Server : public Server
 	public:
 		IPC_Server(char *addr, sem_t *sem_s, sem_t *sem_c);
 		~IPC_Server(void) override;
-
+	
 		void init(void) override;
 		void send(char *message, size_t size) override;
 		void recv(char *message, size_t size) override;
+		void begin(void) override;
+		void end(void) override;
 
 	protected:
 		void _shutdown(void) override;

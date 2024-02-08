@@ -9,7 +9,14 @@
 
 void sigint_handler(int signal);
 
-enum transfer_mode mode = UDP;
+#ifdef UDP_MODE
+	enum transfer_mode mode = UDP;
+#elif defined IPC_MODE
+	enum transfer_mode mode = IPC;
+#else
+	enum transfer_mode mode = IPC;
+#endif
+
 Wordle_Server wordle_server(mode);
 
 int main(void) 
