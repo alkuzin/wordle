@@ -43,7 +43,6 @@ class UDP_Client : public Client
 	
 	private:
 		void _show_server_info(void);
-		void _handle_server(void);
 };
 
 #endif // UDP_CLIENT_H
