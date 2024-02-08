@@ -26,14 +26,10 @@
 #define IPC_RESULT_ERROR         -1
 #define SEM_SERVER_NAME 		 "/sem_server"
 #define SEM_CLIENT_NAME 		 "/sem_client"
-
-#define DEFAULT_CLIENT_NAME  "client"
-#define CLIENT_NAME_SIZE     256
-#define ATTEMPTS_BYTES_SIZE  12
+#define ATTEMPTS_BYTES_SIZE      12
 
 class IPC_Client : public Client
 {
-	char  client_name[CLIENT_NAME_SIZE];
 	sem_t *sem_server;
 	sem_t *sem_client;
 	char  *shm_addr;
@@ -47,13 +43,11 @@ class IPC_Client : public Client
 		void recv(char *message, size_t size) override;
 		void send(char *message, size_t size) override;
 		int  get_socket(void);
+		void begin(void) override;
+		void end(void) override;
 
 	protected:
 		void _shutdown(void) override;
-	
-	private:
-		void _set_client_name(void);
-		void _handle_server(void);
 };
 
 #endif // IPC_CLIENT_H
