@@ -9,7 +9,6 @@
 
 #include "udp_server.h"
 #include "ipc_server.h"
-#include "utils.h"
 
 enum transfer_mode {
 	UDP,
@@ -20,6 +19,7 @@ class Wordle_Server
 {
 	enum   transfer_mode mode;
 	Server *server;
+	Game   game;
 
 	public:
 		Wordle_Server(enum transfer_mode mode);
@@ -30,6 +30,7 @@ class Wordle_Server
 	private:
 		void _init_udp(void);
 		void _init_ipc(void);
+		void _process(void);
 		void _shutdown(void);
 };
 

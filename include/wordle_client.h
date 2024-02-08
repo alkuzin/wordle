@@ -15,10 +15,16 @@ enum transfer_mode {
 	IPC
 };
 
+#define DEFAULT_CLIENT_NAME  "client"
+#define CLIENT_NAME_SIZE     256
+
+
 class Wordle_Client 
 {
+	char   client_name[CLIENT_NAME_SIZE];
 	enum   transfer_mode mode;
 	Client *client;
+	UI     ui;
 
 	public:
 		Wordle_Client(enum transfer_mode mode);
@@ -27,8 +33,10 @@ class Wordle_Client
 		void init(void);
 	
 	private:
+		void _set_client_name(void);
 		void _init_udp(void);
 		void _init_ipc(void);
+		void _process(void);
 		void _shutdown(void);
 };
 
