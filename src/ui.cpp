@@ -52,5 +52,5 @@ void UI::display_word(const char* word, const bool *letters)
 	else
 		std::cout << " letters are correct";
 
-	std::cout << " (" << attempts - 1 << " attempts left)\n" << std::endl;
+	std::cout << " (" << attempts - 1 << " attempts left)" << std::endl;
 }
