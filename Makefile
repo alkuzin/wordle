@@ -16,18 +16,28 @@ $(OBJS_PREFIXED): $(SRCS_PREFIXED)
 	$(CC) $(CFLAGS) -c $(SRCS_PREFIXED)
 	mv *.o $(OBJS_DIR)
 
-server: $(OBJS_PREFIXED) 
-	$(CC) $(CFLAGS) server_main.cpp $(OBJS_PREFIXED) -o server
+udpserver: $(OBJS_PREFIXED)
+	$(CC) $(CFLAGS) -DUDP_MODE=UDP server_main.cpp $(OBJS_PREFIXED) -o server_udp
 
-client: $(OBJS_PREFIXED)
-	$(CC) $(CFLAGS) client_main.cpp $(OBJS_PREFIXED) -o client
+udpclient: $(OBJS_PREFIXED)
+	$(CC) $(CFLAGS) -DUDP_MODE=UDP client_main.cpp $(OBJS_PREFIXED) -o client_udp
 
-all: server client
+ipcserver: $(OBJS_PREFIXED)
+	$(CC) $(CFLAGS) -DIPC_MODE=IPC server_main.cpp $(OBJS_PREFIXED) -o server_ipc
+
+ipcclient: $(OBJS_IPC_PREFIXED)
+	$(CC) $(CFLAGS) -DIPC_MODE=IPC client_main.cpp $(OBJS_PREFIXED) -o client_ipc
+
+udp: udpserver udpclient
+
+ipc: ipcserver ipcclient
+
+all: udp ipc
 
 clean:
 	rm -rf $(OBJS_DIR)
 
 fclean: clean
-	rm -f server client
+	rm -f server_udp client_udp server_ipc client_ipc
 
 re: clean all
