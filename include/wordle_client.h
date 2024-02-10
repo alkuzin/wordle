@@ -34,8 +34,6 @@ class Wordle_Client
 	
 	private:
 		void _set_client_name(void);
-		void _init_udp(void);
-		void _init_ipc(void);
 		void _process(void);
 		void _shutdown(void);
 };
