@@ -33,10 +33,11 @@ class IPC_Client : public Client
 	sem_t *sem_server;
 	sem_t *sem_client;
 	char  *shm_addr;
+   	int   shmid;
 	UI    ui;
 	
 	public:
-		IPC_Client(char *addr, sem_t *sem_s, sem_t *sem_c);
+		IPC_Client(void);
 		~IPC_Client() override;		
 		
 		void init(void) override;
