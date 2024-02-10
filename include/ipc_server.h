@@ -33,9 +33,10 @@ class IPC_Server : public Server
 	sem_t *sem_client;
 	char  *shm_addr;
 	Game  game;
+	int   shmid;
 
 	public:
-		IPC_Server(char *addr, sem_t *sem_s, sem_t *sem_c);
+		IPC_Server(void);
 		~IPC_Server(void) override;
 	
 		void init(void) override;
