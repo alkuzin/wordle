@@ -28,8 +28,6 @@ class Wordle_Server
 		void init(void);
 	
 	private:
-		void _init_udp(void);
-		void _init_ipc(void);
 		void _process(void);
 		void _shutdown(void);
 };
