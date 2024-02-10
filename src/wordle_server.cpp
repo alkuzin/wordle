@@ -14,19 +14,57 @@ Wordle_Server::Wordle_Server(enum transfer_mode mode)
 
 void Wordle_Server::init(void)
 {
-	switch(mode) {
-		case UDP:
-			_init_udp();
-			break;
+	try {
+		switch(mode) {
+			case UDP:
+				server = new UDP_Server();
+				break;
 		
-		case IPC:
-			_init_ipc();
-			break;
+			case IPC:
+				server = new IPC_Server();
+				break;
 		
-		default:
-			std::cerr << "incorrect server mode" << std::endl;
-			exit(EXIT_FAILURE);
-			break;
+			default:
+				std::cerr << "incorrect server mode" << std::endl;
+				exit(EXIT_FAILURE);
+				break;
+		}
+	
+		server->init();
+
+		while(true) {
+			_log("server", "--- handle client ---");	
+			_process();
+			std::cout << std::endl;
+		}
+	}
+	catch(exception e) 
+	{
+		std::cerr << "exception: ";
+		switch(e) {
+			case INVALID_IP_ADDRESS_EXCEPTION:
+				std::cerr << "this ip address is invalid" << std::endl;
+				break;
+
+			case FORBIDDEN_PORT_EXCEPTION:
+				std::cerr << "this port is not allowed" << std::endl;
+				break;
+
+			case SOCKET_CREATION_EXCEPTION:
+				std::cerr << "socket creation failed" << std::endl;
+				break;
+			case BIND_EXCEPTION:
+				std::cerr << "bind failed" << std::endl;
+				break;
+			
+			case WORDLIST_FILE_OPEN_EXCEPTION:
+				std::cerr << "failed to open wordlist file" << std::endl;
+				break;
+
+			default:
+				std::cerr << "some exception occurred" << std::endl;
+				break;
+		};
 	}
 }
 
@@ -114,60 +152,6 @@ void Wordle_Server::_process(void)
 		_log("server", "sem_post(sem_server)");
 		sem_post(sem_server);
 	#endif
-}
-
-void Wordle_Server::_init_udp(void) 
-{
-	try {
-		server = new UDP_Server();
-		server->init();
-		
-		while(true) {
-			_log("server", "--- handle client ---");	
-			_process();
-			std::cout << std::endl;
-		}
-	}
-	catch(exception e) 
-	{
-		std::cerr << "exception: ";
-		switch(e) {
-			case INVALID_IP_ADDRESS_EXCEPTION:
-				std::cerr << "this ip address is invalid" << std::endl;
-				break;
-
-			case FORBIDDEN_PORT_EXCEPTION:
-				std::cerr << "this port is not allowed" << std::endl;
-				break;
-
-			case SOCKET_CREATION_EXCEPTION:
-				std::cerr << "socket creation failed" << std::endl;
-				break;
-			case BIND_EXCEPTION:
-				std::cerr << "bind failed" << std::endl;
-				break;
-			
-			case WORDLIST_FILE_OPEN_EXCEPTION:
-				std::cerr << "failed to open wordlist file" << std::endl;
-				break;
-
-			default:
-				std::cerr << "some exception occurred" << std::endl;
-				break;
-		};
-	}
-}
-
-void Wordle_Server::_init_ipc(void)
-{
-	server = new IPC_Server();
-	server->init();
-		
-	while(true) {
-		_log("server", "--- handle client ---");	
-		_process();
-		std::cout << std::endl;
-	}
 }
 
 void Wordle_Server::_shutdown(void) {
