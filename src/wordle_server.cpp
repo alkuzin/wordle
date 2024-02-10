@@ -75,12 +75,10 @@ void Wordle_Server::_process(void)
 
 		// display bool array of guesssed letters
 		_display_bytes(bytes, WORD_LENGTH);	
-		std::cout << attempts_bytes << std::endl;
-		
 		server->send(bytes, sizeof(bytes));
-		
-		_logf("server", "sending the number of attempts left to client: (%s)\n", attempts_bytes);
+
 		game.decrement_attempts();
+		_logf("server", "sending the number of attempts left to client: (%s)\n", attempts_bytes);
 		server->send(attempts_bytes, sizeof(attempts_bytes));
 		
 		#ifdef IPC_MODE
@@ -162,40 +160,7 @@ void Wordle_Server::_init_udp(void)
 
 void Wordle_Server::_init_ipc(void)
 {
-	sem_t *sem_server;
-	sem_t *sem_client;
-	char  *block;
-	key_t key; 
-   	int   shmid;
-		
-	key = ftok(SHARED_MEMORY_BLOCK_NAME, SHARED_MEMORY_BLOCK_SIZE);
- 
-   	// returns an identifier in shmid
-   	shmid = shmget(key, SHARED_MEMORY_BLOCK_SIZE, 0666 | IPC_CREAT);
- 
-   	// attach to shared memory
-   	block = (char *)shmat(shmid, NULL, 0);
-	_logf("server", "set shared memory block: <%p>\n", block);
-
-	// setup semaphores
-	sem_unlink(SEM_SERVER_NAME);
-	sem_unlink(SEM_CLIENT_NAME);
-		
-	sem_server = sem_open(SEM_SERVER_NAME, O_CREAT, 0777, 0);
-	if(sem_server == SEM_FAILED) {
-		perror("sem_open/sem_server");
-		exit(EXIT_FAILURE);
-	}
-	_log("server", "sem_server opened");
-		
-	sem_client = sem_open(SEM_CLIENT_NAME, O_CREAT, 0777, 0);
-	if(sem_client == SEM_FAILED) {
-		perror("sem_open/sem_client");
-		exit(EXIT_FAILURE);
-	}
-	_log("server", "sem_client opened");
-		
-	server = new IPC_Server(block, sem_server, sem_client);
+	server = new IPC_Server();
 	server->init();
 		
 	while(true) {
@@ -203,12 +168,6 @@ void Wordle_Server::_init_ipc(void)
 		_process();
 		std::cout << std::endl;
 	}
- 
-    // detach from shared memory
-    shmdt(block);
- 
-    // destroy the shared memory
-    shmctl(shmid, IPC_RMID, NULL);
 }
 
 void Wordle_Server::_shutdown(void) {
